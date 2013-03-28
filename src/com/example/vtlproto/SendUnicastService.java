@@ -68,7 +68,7 @@ public class SendUnicastService extends IntentService {
 
 			socket.send(outPacket);
 
-			Log.i(TAG,"SENDING : " + rawPacket);
+			Log.i(TAG,"SENDING : " + rawPacket+ "to "+IPAdddress);
 			
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage());

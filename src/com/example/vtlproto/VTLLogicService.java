@@ -59,219 +59,218 @@ public class VTLLogicService {
 		public void run() {
 			Log.i(VTLActivity.TAG, "Begin ConflictDetectionThread");
 			try {
-			while (runFlagConflictDetection) {
+				while (runFlagConflictDetection) {
 
-				application.intersection = getIntersection(
-						application.getCurrentPositionX(),
-						application.getCurrentPositionY(),
-						application.direction);
-				if (application.intersection != null) {
+					application.intersection = getIntersection(
+							application.getCurrentPositionX(),
+							application.getCurrentPositionY(),
+							application.direction);
+					if (application.intersection != null) {
 
-					ArrayList<CloseCar> closeCars = closeCars();
-					if (application.intersection != null
-							&& isConflictingIntersection(closeCars)) {
-
-						application.trafficLightColor = VTLApplication.ORANGE;
-
-						furthestCarFromIntersection.setDistance(getDistance(
-								application.getCurrentPositionX(),
-								application.intersection.getX(),
-								application.getCurrentPositionY(),
-								application.intersection.getY()));
-
-						furthestCarFromIntersection
-								.setIPAdress(application.IPAddress);
-
-						furthestCarFromIntersection(closeCars);
-
-						Message msg = myUpdateHandler
-								.obtainMessage(VTLApplication.HANDLER_RX_CONFLICT_DETECTED);
-
-						myUpdateHandler.sendMessage(msg);
-
-						/*
-						 * Log.i(TAG, "The furthestCarFromIntersection is: " +
-						 * furthestCarFromIntersection.getIPAdress());
-						 */
-
-						/* code for the leader */
-						String rawPacket;
-						if (furthestCarFromIntersection.getIPAdress().equals(
-								application.IPAddress)) {
-
-							Log.i(TAG,
-									"I am the leader, so i send a unicast packet");
-							for (CloseCar closeCar : closeCars) {
-
-								;
-								rawPacket = new StringBuilder(
-										String.valueOf(VTLApplication.MSG_TYPE_LIGHT_STATUS))
-										.append(VTLApplication.MSG_SEPARATOR)
-										.append(application.time.format(
-												"%k:%M:%S").toString())
-										.append(VTLApplication.MSG_SEPARATOR)
-										.append(isConflictingDirection(
-												closeCar.getDirection(),
-												application.direction) ? VTLApplication.MSG_LIGHT_STATUS_GREEN
-												: VTLApplication.MSG_LIGHT_STATUS_RED)
-										.toString();
-
-								Intent serviceIntent = new Intent(context,
-										SendUnicastService.class);
-								serviceIntent.putExtra(
-										SendUnicastService.EXTRAS_DST_IP,
-										closeCar.getIPAdress());
-								serviceIntent.putExtra(
-										SendUnicastService.EXTRAS_RAW_PACKET,
-										rawPacket);
-
-								context.startService(serviceIntent);
-							}
-
-							application.trafficLightColor = Color.RED;
-							msg = myUpdateHandler
-									.obtainMessage(VTLApplication.HANDLER_NEW_LIGHT_STATUS);
-							Bundle bundle = new Bundle();
-							bundle.putString("furthestCarFromIntersection",
-									furthestCarFromIntersection.getIPAdress());
-							msg.setData(bundle);
-							myUpdateHandler.sendMessage(msg);
-
-						
-								Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
-							
-
-							Log.i(TAG,
-									"I am the leader, so i send a unicast packet");
-							for (CloseCar closeCar : closeCars) {
-
-								;
-								rawPacket = new StringBuilder(
-										String.valueOf(VTLApplication.MSG_TYPE_LIGHT_STATUS))
-										.append(VTLApplication.MSG_SEPARATOR)
-										.append(application.time.format(
-												"%k:%M:%S").toString())
-										.append(VTLApplication.MSG_SEPARATOR)
-										.append(isConflictingDirection(
-												closeCar.getDirection(),
-												application.direction) ? VTLApplication.MSG_LIGHT_STATUS_GREEN
-												: VTLApplication.MSG_LIGHT_STATUS_RED)
-										.toString();
-
-								Intent serviceIntent = new Intent(context,
-										SendUnicastService.class);
-								serviceIntent.putExtra(
-										SendUnicastService.EXTRAS_DST_IP,
-										closeCar.getIPAdress());
-								serviceIntent.putExtra(
-										SendUnicastService.EXTRAS_RAW_PACKET,
-										rawPacket);
-
-								context.startService(serviceIntent);
-							}
-							
-							application.trafficLightColor = Color.GREEN;
-							msg = myUpdateHandler
-									.obtainMessage(VTLApplication.HANDLER_NEW_LIGHT_STATUS);
-							bundle = new Bundle();
-							bundle.putString("furthestCarFromIntersection",
-									null);
-							msg.setData(bundle);
-							myUpdateHandler.sendMessage(msg);
-
-								Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
-						
-
-							/* code for others */
-						} else {
-
-							Log.i(TAG,
-									"I am not the leader, so i am waiting for the leader");
+						ArrayList<CloseCar> closeCars = closeCars();
+						if (application.intersection != null
+								&& isConflictingIntersection(closeCars)) {
 
 							application.trafficLightColor = VTLApplication.ORANGE;
 
-							msg = myUpdateHandler
-									.obtainMessage(VTLApplication.HANDLER_NEW_LIGHT_STATUS);
-							bundle = new Bundle();
-							bundle.putString("furthestCarFromIntersection",
-									furthestCarFromIntersection.getIPAdress());
-							msg.setData(bundle);
+							furthestCarFromIntersection
+									.setDistance(getDistance(
+											application.getCurrentPositionX(),
+											application.intersection.getX(),
+											application.getCurrentPositionY(),
+											application.intersection.getY()));
+
+							furthestCarFromIntersection
+									.setIPAdress(application.IPAddress);
+
+							furthestCarFromIntersection(closeCars);
+
+							Message msg = myUpdateHandler
+									.obtainMessage(VTLApplication.HANDLER_RX_CONFLICT_DETECTED);
 
 							myUpdateHandler.sendMessage(msg);
 
-							application.waitingForLeaderMessage = true;
-
-							// int counter=3; /*wait for 3 seconds or timeout*/
-							while (application.waitingForLeaderMessage) {
-								Log.d(TAG, "looping");
-								
-									Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
-							
-
-							}
-
 							/*
-							 * if (counter==0) { Log.d(TAG, "it was a timeout");
-							 * application.trafficLightColor =
-							 * VTLApplication.ORANGE; //I really dont need to,
-							 * but it will be useful for when i get red msg =
-							 * myUpdateHandler .obtainMessage(VTLApplication.
-							 * HANDLER_NEW_LIGHT_STATUS); bundle = new Bundle();
-							 * bundle.putString("furthestCarFromIntersection",
-							 * furthestCarFromIntersection.getIPAdress());
-							 * msg.setData(bundle); } else Log.d(TAG,
-							 * "must be on green already");
-							 */
-							/*
-							 * means I received a traffic light packet from
-							 * leader if reach here
+							 * Log.i(TAG, "The furthestCarFromIntersection is: "
+							 * + furthestCarFromIntersection.getIPAdress());
 							 */
 
-							if (application.trafficLightColor == Color.RED) {
-								// wait until i get a green
-								application.waitingForLeaderMessage = true;
-								while (application.waitingForLeaderMessage) {
+							/* code for the leader */
+							String rawPacket;
+							if (furthestCarFromIntersection.getIPAdress()
+									.equals(application.IPAddress)) {
+
+								Log.i(TAG,
+										"I am the leader, so i send a unicast packet");
+								for (CloseCar closeCar : closeCars) {
+
+									Log.i(TAG, "ill send messages to this car "
+											+ closeCar.getIPAdress());
+									rawPacket = new StringBuilder(
+											String.valueOf(VTLApplication.MSG_TYPE_LIGHT_STATUS))
+											.append(VTLApplication.MSG_SEPARATOR)
+											.append(application.time.format(
+													"%k:%M:%S").toString())
+											.append(VTLApplication.MSG_SEPARATOR)
+											.append(isConflictingDirection(
+													closeCar.getDirection(),
+													application.direction) ? VTLApplication.MSG_LIGHT_STATUS_GREEN
+													: VTLApplication.MSG_LIGHT_STATUS_RED)
+											.toString();
+
+									Intent serviceIntent = new Intent(context,
+											SendUnicastService.class);
+									serviceIntent.putExtra(
+											SendUnicastService.EXTRAS_DST_IP,
+											closeCar.getIPAdress());
+									serviceIntent
+											.putExtra(
+													SendUnicastService.EXTRAS_RAW_PACKET,
+													rawPacket);
+
+									context.startService(serviceIntent);
 								}
-								
+
+								application.trafficLightColor = Color.RED;
+								msg = myUpdateHandler
+										.obtainMessage(VTLApplication.HANDLER_NEW_LIGHT_STATUS);
+								Bundle bundle = new Bundle();
+								bundle.putString("furthestCarFromIntersection",
+										furthestCarFromIntersection
+												.getIPAdress());
+								msg.setData(bundle);
+								myUpdateHandler.sendMessage(msg);
+
 								Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
 
+								Log.i(TAG,
+										"I am the leader, so i send a unicast packet");
+								for (CloseCar closeCar : closeCars) {
+
+									;
+									rawPacket = new StringBuilder(
+											String.valueOf(VTLApplication.MSG_TYPE_LIGHT_STATUS))
+											.append(VTLApplication.MSG_SEPARATOR)
+											.append(application.time.format(
+													"%k:%M:%S").toString())
+											.append(VTLApplication.MSG_SEPARATOR)
+											.append(isConflictingDirection(
+													closeCar.getDirection(),
+													application.direction) ? VTLApplication.MSG_LIGHT_STATUS_RED
+													: VTLApplication.MSG_LIGHT_STATUS_GREEN)
+											.toString();
+
+									Intent serviceIntent = new Intent(context,
+											SendUnicastService.class);
+									serviceIntent.putExtra(
+											SendUnicastService.EXTRAS_DST_IP,
+											closeCar.getIPAdress());
+									serviceIntent
+											.putExtra(
+													SendUnicastService.EXTRAS_RAW_PACKET,
+													rawPacket);
+
+									context.startService(serviceIntent);
+								}
+
+								application.trafficLightColor = Color.GREEN;
+								msg = myUpdateHandler
+										.obtainMessage(VTLApplication.HANDLER_NEW_LIGHT_STATUS);
+								bundle = new Bundle();
+								bundle.putString("furthestCarFromIntersection",
+										null);
+								msg.setData(bundle);
+								myUpdateHandler.sendMessage(msg);
+
+								Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
+
+								/* code for others */
+							} else {
+
+								Log.i(TAG,
+										"I am not the leader, so i am waiting for the leader");
+
+								application.trafficLightColor = VTLApplication.ORANGE;
+
+								msg = myUpdateHandler
+										.obtainMessage(VTLApplication.HANDLER_NEW_LIGHT_STATUS);
+								bundle = new Bundle();
+								bundle.putString("furthestCarFromIntersection",
+										furthestCarFromIntersection
+												.getIPAdress());
+								msg.setData(bundle);
+
+								myUpdateHandler.sendMessage(msg);
+
+								application.waitingForLeaderMessage = true;
+
+								// int counter=3; /*wait for 3 seconds or
+								// timeout*/
+								while (application.waitingForLeaderMessage) {
+									Log.d(TAG, "looping");
+
+									Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
+
+								}
+
+								/*
+								 * if (counter==0) { Log.d(TAG,
+								 * "it was a timeout");
+								 * application.trafficLightColor =
+								 * VTLApplication.ORANGE; //I really dont need
+								 * to, but it will be useful for when i get red
+								 * msg = myUpdateHandler
+								 * .obtainMessage(VTLApplication.
+								 * HANDLER_NEW_LIGHT_STATUS); bundle = new
+								 * Bundle();
+								 * bundle.putString("furthestCarFromIntersection"
+								 * , furthestCarFromIntersection.getIPAdress());
+								 * msg.setData(bundle); } else Log.d(TAG,
+								 * "must be on green already");
+								 */
+								/*
+								 * means I received a traffic light packet from
+								 * leader if reach here
+								 */
+
+								if (application.trafficLightColor == Color.RED) {
+									// wait until i get a green
+									application.waitingForLeaderMessage = true;
+									while (application.waitingForLeaderMessage) {
+									}
+
+									Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
+
+								}
+
+								/*
+								 * did i pass internsection,, if yes, i should
+								 * get out of here, if not, wait for next
+								 * message
+								 */
+
 							}
-
-							/*
-							 * did i pass internsection,, if yes, i should get
-							 * out of here, if not, wait for next message
-							 */
-
-							
-							
 						}
+
+					} else {
+						Message msg = myUpdateHandler
+								.obtainMessage(VTLApplication.HANDLER_RX_CONFLICT_DETECTED);
+						myUpdateHandler.sendMessage(msg);
+						application.trafficLightColor = Color.WHITE;
 					}
 
-				} else {
-					Message msg = myUpdateHandler
-							.obtainMessage(VTLApplication.HANDLER_RX_CONFLICT_DETECTED);
-					myUpdateHandler.sendMessage(msg);
-					application.trafficLightColor = Color.WHITE;
-				}
-
-				
 					Thread.sleep(VTLApplication.SLEEPTIME_CONFLICTDETECTION);
-				
 
-			}   }catch (InterruptedException ie) {
+				}
+			} catch (InterruptedException ie) {
 				Log.i(TAG, ie.getMessage());
 				runFlagConflictDetection = false;
-			
+
 				Thread.currentThread().interrupt();
 			}
 
 		}
-		
-		
-		
-		
-		
-		
+
 	}
 
 	private ArrayList<CloseCar> closeCars() {

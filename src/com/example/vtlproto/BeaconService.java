@@ -111,7 +111,7 @@ public class BeaconService {
 				.append(rxIPAdress)).toString();
 
 		
-		Log.i(TAG, "Listener Thread got:  "+ stringMsg);
+		//Log.i(TAG, "Listener Thread got:  "+ stringMsg);
 		Message msg = myUpdateHandler
 				.obtainMessage(VTLApplication.HANDLER_RX_TEXT);
 		Bundle bundle = new Bundle();

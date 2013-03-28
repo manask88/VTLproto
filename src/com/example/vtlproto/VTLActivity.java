@@ -54,6 +54,7 @@ public class VTLActivity extends Activity {
 		numNeighbors = 0;
 		runTimeThread();
 		trafficLight = (Button) findViewById(R.id.trafficLight);
+		trafficLight.setText("        ");
 		trafficLight.setBackgroundColor(application.trafficLightColor);
 		tvCurrentX = (TextView) this.findViewById(R.id.tvPositionX);
 		tvCurrentX.setText(application.getCurrentPositionX() + "");
@@ -99,7 +100,7 @@ public class VTLActivity extends Activity {
 		});
 
 		beaconService = new BeaconService(context, myUpdateHandler);
-		VTLLogicService = new VTLLogicService(context, myUpdateHandler);
+		VTLLogicService = new VTLLogicService(context, myUpdateHandler2);
 
 		buttonStart.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
@@ -327,6 +328,110 @@ public class VTLActivity extends Activity {
 		}
 	};
 
+	Handler myUpdateHandler2 = new Handler() {
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+			case VTLApplication.HANDLER_RX_TEXT:
+				TextView tvReceived = (TextView) findViewById(R.id.tvReceived);
+				String text = msg.getData().getString("Message");
+				tvReceived.setText(text);
+
+				char type = text.charAt(0);
+
+				switch (type) {
+				case VTLApplication.MSG_TYPE_BEACON:
+
+					BeaconPacket beaconPacket = new BeaconPacket(text);
+					String IPAddress = beaconPacket.getIPAdress();
+
+					if (application.hashMapNeighbors.get(IPAddress) == null) {
+
+						Log.i(TAG, "got:" + IPAddress);
+						beaconPacket
+								.setColor(VTLApplication.COLORS[numNeighbors]);
+						application.hashMapNeighbors.put(IPAddress,
+								beaconPacket);
+						numNeighbors++;
+					} else {
+						/* to reset last position */
+						resetSquare(application.hashMapNeighbors.get(IPAddress)
+								.getX(),
+								application.hashMapNeighbors.get(IPAddress)
+										.getY());
+						beaconPacket.setColor(application.hashMapNeighbors.get(
+								IPAddress).getColor());
+						application.hashMapNeighbors.put(IPAddress,
+								beaconPacket);
+					}
+					drawSquare(beaconPacket.getX(), beaconPacket.getY(),
+							beaconPacket.getColor());
+
+					break;
+
+				case VTLApplication.MSG_TYPE_LIGHT_STATUS:
+					TrafficLightPacket trafficLightPacket = new TrafficLightPacket(
+							text);
+
+					char status = trafficLightPacket.getStatus();
+					switch (status) {
+					case VTLApplication.MSG_LIGHT_STATUS_GREEN:
+						application.trafficLightColor=Color.GREEN;
+						trafficLight.setBackgroundColor(application.trafficLightColor);
+						application.waitingForLeaderMessage=false;
+						Log.d(TAG, "got green light message from leader");
+						break;
+					case VTLApplication.MSG_LIGHT_STATUS_RED:
+						application.trafficLightColor=Color.RED;
+						trafficLight.setBackgroundColor(application.trafficLightColor);
+						application.waitingForLeaderMessage=false;
+
+						break;
+					}
+
+					break;
+				}
+
+				// Toast.makeText(context,
+				// "i got"+msg.getData().getString("Message"),
+				// Toast.LENGTH_SHORT).show();
+
+				break;
+			case VTLApplication.HANDLER_RX_CONFLICT_DETECTED:
+
+				trafficLight.setBackgroundColor(application.trafficLightColor);
+				TextView tvIntersection = (TextView) findViewById(R.id.tvIntersection);
+				if (application.intersection != null)
+					tvIntersection.setText("x:"
+							+ application.intersection.getX() + " y:"
+							+ application.intersection.getY());
+				else
+					tvIntersection.setText("no");
+
+				break;
+			case VTLApplication.HANDLER_NEW_LIGHT_STATUS:
+				TextView tvFurthestCarFromIntersection = (TextView) findViewById(R.id.tvFurthestCarFromIntersection);
+				String textFurthestCarFromIntersection = msg.getData()
+						.getString("furthestCarFromIntersection");
+				tvFurthestCarFromIntersection
+						.setText(textFurthestCarFromIntersection);
+				trafficLight.setBackgroundColor(application.trafficLightColor);
+
+				break;
+
+			case VTLApplication.HANDLER_NEW_DISTANCE:
+				TextView tvOtherDistanceToIntersection = (TextView) findViewById(R.id.tvOtherDistanceToIntersection);
+				float otherDistanceToIntersection = msg.getData().getFloat(
+						"otherDistanceToIntersection");
+				tvOtherDistanceToIntersection.setText(String
+						.valueOf(otherDistanceToIntersection));
+
+				break;
+			default:
+				break;
+			}
+			super.handleMessage(msg);
+		}
+	};
 	private void runTimeThread() {
 
 		new Thread() {
