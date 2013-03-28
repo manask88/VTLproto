@@ -113,10 +113,10 @@ public class VTLApplication extends Application {
 			Color.YELLOW };
 
 	public final static int SLEEPTIME_TIME = 1000;
-	public final static int HANDLER_RX_CONFLICT_DETECTED = 2;
-	public final static int HANDLER_RX_TEXT = 1;
-	public final static int HANDLER_NEW_LIGHT_STATUS = 3;
-	public final static int HANDLER_NEW_DISTANCE = 4;
+	public final static int VTLLOGICSERVICE_HANDLER_RX_CONFLICT_DETECTED = 2;
+	public final static int BEACONSERVICE_HANDLER_RX_TEXT = 1;
+	public final static int VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS = 3;
+	public final static int VTLLOGICSERVICE_HANDLER_NEW_DISTANCE = 4;
 
 	public final static char MSG_SEPARATOR = ',';
 	public final static char MSG_TYPE_BEACON = 'B';
@@ -133,6 +133,8 @@ public class VTLApplication extends Application {
 	public HashMap<String, BeaconPacket> hashMapNeighbors;
 	public BeaconService beaconService;
 	public  boolean beaconServiceStatus=false;
+	public  boolean conflictDetected=false;
+
 	public  boolean waitingForLeaderMessage=false;
 
 	public int getCurrentPositionX() {

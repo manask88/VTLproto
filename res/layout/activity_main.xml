@@ -39,12 +39,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Start" />
-
-                <Button
-                    android:id="@+id/buttonTest"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="TEst" />
             </LinearLayout>
         </LinearLayout>
 
@@ -57,7 +51,7 @@
                 android:id="@+id/tvReceived"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/hello_world" />
+                android:text="Haven&apos;t received anything yet" />
         </LinearLayout>
 
         <LinearLayout
@@ -68,7 +62,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Intersection" />
+                android:text="Intersection: " />
 
             <TextView
                 android:id="@+id/tvIntersection"
@@ -81,43 +75,41 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal" >
-            
-             <TextView
-                android:layout_width="0dp"
+
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight=".3"
-                android:text="Closest Car To Intersection" />
-              <TextView
+                android:text="Closest Car To Intersection: " />
+
+            <TextView
                 android:id="@+id/tvClosestCarToIntersection"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight=".3"
                 android:text="" />
         </LinearLayout>
-        
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal" >
-            
-             <TextView
-                android:layout_width="0dp"
+
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight=".3"
                 android:text="My distance:" />
-              <TextView
+
+            <TextView
                 android:id="@+id/tvMyDistanceToIntersection"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight=".3"
                 android:text="" />
-              
-                 <TextView
-                android:layout_width="0dp"
+
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight=".3"
                 android:text=" Other distance:" />
-              <TextView
+
+            <TextView
                 android:id="@+id/tvOtherDistanceToIntersection"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -132,22 +124,30 @@
 
             <TextView
                 android:id="@+id/tvTime"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight=".3"
-                android:text="" />
-
-            <TextView
-                android:id="@+id/tvIPAddress"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight=".3"
                 android:text="" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Position (x,y): " />
+                android:text=" " />
+
+            <TextView
+                android:id="@+id/tvIPAddress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" " />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Position(x,y): " />
 
             <TextView
                 android:id="@+id/tvPositionX"

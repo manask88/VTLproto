@@ -30,7 +30,7 @@ public class VTLActivity extends Activity {
 	public final static int SQUARESIZE = 50;
 	public final static int SQUAREMARGIN = 13;
 	private Button buttonLeft, buttonRight, buttonUp, buttonDown, buttonStart,
-			trafficLight, buttonTest;
+			trafficLight;
 	boolean shouldDraw = false;
 	private Context context = this;
 	private TextView tvCurrentX, tvCurrentY, tvTime, tvIPAddress;
@@ -85,22 +85,20 @@ public class VTLActivity extends Activity {
 		buttonUp = (Button) findViewById(R.id.buttonUp);
 		buttonLeft = (Button) findViewById(R.id.buttonLeft);
 		buttonRight = (Button) findViewById(R.id.buttonRight);
-		buttonTest = (Button) findViewById(R.id.buttonTest);
+		/*
+		 * buttonTest = (Button) findViewById(R.id.buttonTest);
+		 * 
+		 * buttonTest.setOnClickListener(new View.OnClickListener() { public
+		 * void onClick(View v) { Intent serviceIntent = new Intent(context,
+		 * SendUnicastService.class);
+		 * serviceIntent.putExtra(SendUnicastService.EXTRAS_DST_IP,
+		 * "10.20.1.144"); // serviceIntent.setAction("something"); Log.i(TAG,
+		 * "trying to start FileTransferService");
+		 * context.startService(serviceIntent); } });
+		 */
 
-		buttonTest.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				Intent serviceIntent = new Intent(context,
-						SendUnicastService.class);
-				serviceIntent.putExtra(SendUnicastService.EXTRAS_DST_IP,
-						"10.20.1.144");
-				// serviceIntent.setAction("something");
-				Log.i(TAG, "trying to start FileTransferService");
-				context.startService(serviceIntent);
-			}
-		});
-
-		beaconService = new BeaconService(context, myUpdateHandler);
-		VTLLogicService = new VTLLogicService(context, myUpdateHandler2);
+		beaconService = new BeaconService(context, beconServiceHandler);
+		VTLLogicService = new VTLLogicService(context, VTLLogicServiceHandler);
 
 		buttonStart.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
@@ -123,7 +121,7 @@ public class VTLActivity extends Activity {
 
 				shouldDraw = true;
 
-				//Log.i(VTLActivity.TAG, "Go down");
+				// Log.i(VTLActivity.TAG, "Go down");
 				resetSquare(application.getCurrentPositionX(),
 						application.getCurrentPositionY());
 				tvCurrentY.setText(String.valueOf(application.decCurrentY()));
@@ -135,7 +133,7 @@ public class VTLActivity extends Activity {
 
 		buttonUp.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				//Log.i(VTLActivity.TAG, "Go up");
+				// Log.i(VTLActivity.TAG, "Go up");
 				resetSquare(application.getCurrentPositionX(),
 						application.getCurrentPositionY());
 				tvCurrentY.setText(String.valueOf(application.incCurrentY()));
@@ -145,7 +143,7 @@ public class VTLActivity extends Activity {
 		});
 		buttonLeft.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				//Log.i(VTLActivity.TAG, "Go left");
+				// Log.i(VTLActivity.TAG, "Go left");
 				resetSquare(application.getCurrentPositionX(),
 						application.getCurrentPositionY());
 				tvCurrentX.setText(String.valueOf(application.decCurrentX()));
@@ -156,7 +154,7 @@ public class VTLActivity extends Activity {
 		});
 		buttonRight.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				//Log.i(VTLActivity.TAG, "Go right");
+				// Log.i(VTLActivity.TAG, "Go right");
 				resetSquare(application.getCurrentPositionX(),
 						application.getCurrentPositionY());
 				tvCurrentX.setText(String.valueOf(application.incCurrentX()));
@@ -223,10 +221,10 @@ public class VTLActivity extends Activity {
 		return super.onKeyDown(keyCode, event);
 	}
 
-	Handler myUpdateHandler = new Handler() {
+	Handler beconServiceHandler = new Handler() {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
-			case VTLApplication.HANDLER_RX_TEXT:
+			case VTLApplication.BEACONSERVICE_HANDLER_RX_TEXT:
 				TextView tvReceived = (TextView) findViewById(R.id.tvReceived);
 				String text = msg.getData().getString("Message");
 				tvReceived.setText(text);
@@ -264,23 +262,33 @@ public class VTLActivity extends Activity {
 					break;
 
 				case VTLApplication.MSG_TYPE_LIGHT_STATUS:
-					TrafficLightPacket trafficLightPacket = new TrafficLightPacket(
-							text);
 
-					char status = trafficLightPacket.getStatus();
-					switch (status) {
-					case VTLApplication.MSG_LIGHT_STATUS_GREEN:
-						application.trafficLightColor=Color.GREEN;
-						trafficLight.setBackgroundColor(application.trafficLightColor);
-						application.waitingForLeaderMessage=false;
-						Log.d(TAG, "got green light message from leader");
-						break;
-					case VTLApplication.MSG_LIGHT_STATUS_RED:
-						application.trafficLightColor=Color.RED;
-						trafficLight.setBackgroundColor(application.trafficLightColor);
-						application.waitingForLeaderMessage=false;
+					if (application.conflictDetected && application.waitingForLeaderMessage)
 
-						break;
+					{
+						TrafficLightPacket trafficLightPacket = new TrafficLightPacket(
+								text);
+
+						char status = trafficLightPacket.getStatus();
+						switch (status) {
+						case VTLApplication.MSG_LIGHT_STATUS_GREEN:
+							application.trafficLightColor = Color.GREEN;
+							trafficLight
+									.setBackgroundColor(application.trafficLightColor);
+							application.waitingForLeaderMessage = false;
+							Log.d(TAG, "got green light message from leader");
+							break;
+						case VTLApplication.MSG_LIGHT_STATUS_RED:
+							
+							
+							
+							application.trafficLightColor = Color.RED;
+							trafficLight
+									.setBackgroundColor(application.trafficLightColor);
+							application.waitingForLeaderMessage = false;
+
+							break;
+						}
 					}
 
 					break;
@@ -291,36 +299,7 @@ public class VTLActivity extends Activity {
 				// Toast.LENGTH_SHORT).show();
 
 				break;
-			case VTLApplication.HANDLER_RX_CONFLICT_DETECTED:
 
-				trafficLight.setBackgroundColor(application.trafficLightColor);
-				TextView tvIntersection = (TextView) findViewById(R.id.tvIntersection);
-				if (application.intersection != null)
-					tvIntersection.setText("x:"
-							+ application.intersection.getX() + " y:"
-							+ application.intersection.getY());
-				else
-					tvIntersection.setText("no");
-
-				break;
-			case VTLApplication.HANDLER_NEW_LIGHT_STATUS:
-				TextView tvClosestCarToIntersection = (TextView) findViewById(R.id.tvClosestCarToIntersection);
-				String textClosestCarToIntersection = msg.getData()
-						.getString("closestCarToIntersection");
-				tvClosestCarToIntersection
-						.setText(textClosestCarToIntersection);
-				trafficLight.setBackgroundColor(application.trafficLightColor);
-
-				break;
-
-			case VTLApplication.HANDLER_NEW_DISTANCE:
-				TextView tvOtherDistanceToIntersection = (TextView) findViewById(R.id.tvOtherDistanceToIntersection);
-				float otherDistanceToIntersection = msg.getData().getFloat(
-						"otherDistanceToIntersection");
-				tvOtherDistanceToIntersection.setText(String
-						.valueOf(otherDistanceToIntersection));
-
-				break;
 			default:
 				break;
 			}
@@ -328,75 +307,11 @@ public class VTLActivity extends Activity {
 		}
 	};
 
-	Handler myUpdateHandler2 = new Handler() {
+	Handler VTLLogicServiceHandler = new Handler() {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
-			case VTLApplication.HANDLER_RX_TEXT:
-				TextView tvReceived = (TextView) findViewById(R.id.tvReceived);
-				String text = msg.getData().getString("Message");
-				tvReceived.setText(text);
 
-				char type = text.charAt(0);
-
-				switch (type) {
-				case VTLApplication.MSG_TYPE_BEACON:
-
-					BeaconPacket beaconPacket = new BeaconPacket(text);
-					String IPAddress = beaconPacket.getIPAdress();
-
-					if (application.hashMapNeighbors.get(IPAddress) == null) {
-
-						Log.i(TAG, "got:" + IPAddress);
-						beaconPacket
-								.setColor(VTLApplication.COLORS[numNeighbors]);
-						application.hashMapNeighbors.put(IPAddress,
-								beaconPacket);
-						numNeighbors++;
-					} else {
-						/* to reset last position */
-						resetSquare(application.hashMapNeighbors.get(IPAddress)
-								.getX(),
-								application.hashMapNeighbors.get(IPAddress)
-										.getY());
-						beaconPacket.setColor(application.hashMapNeighbors.get(
-								IPAddress).getColor());
-						application.hashMapNeighbors.put(IPAddress,
-								beaconPacket);
-					}
-					drawSquare(beaconPacket.getX(), beaconPacket.getY(),
-							beaconPacket.getColor());
-
-					break;
-
-				case VTLApplication.MSG_TYPE_LIGHT_STATUS:
-					TrafficLightPacket trafficLightPacket = new TrafficLightPacket(
-							text);
-
-					char status = trafficLightPacket.getStatus();
-					switch (status) {
-					case VTLApplication.MSG_LIGHT_STATUS_GREEN:
-						application.trafficLightColor=Color.GREEN;
-						trafficLight.setBackgroundColor(application.trafficLightColor);
-						application.waitingForLeaderMessage=false;
-						Log.d(TAG, "got green light message from leader");
-						break;
-					case VTLApplication.MSG_LIGHT_STATUS_RED:
-						application.trafficLightColor=Color.RED;
-						trafficLight.setBackgroundColor(application.trafficLightColor);
-						application.waitingForLeaderMessage=false;
-
-						break;
-					}
-
-					break;
-				}
-
-				// Toast.makeText(context,
-				// "i got"+msg.getData().getString("Message"),
-				// Toast.LENGTH_SHORT).show();
-
-				break;
-			case VTLApplication.HANDLER_RX_CONFLICT_DETECTED:
+			case VTLApplication.VTLLOGICSERVICE_HANDLER_RX_CONFLICT_DETECTED:
 
 				trafficLight.setBackgroundColor(application.trafficLightColor);
 				TextView tvIntersection = (TextView) findViewById(R.id.tvIntersection);
@@ -408,17 +323,19 @@ public class VTLActivity extends Activity {
 					tvIntersection.setText("no");
 
 				break;
-			case VTLApplication.HANDLER_NEW_LIGHT_STATUS:
+			case VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS:
+
 				TextView tvClosestCarToIntersection = (TextView) findViewById(R.id.tvClosestCarToIntersection);
-				String textClosestCarToIntersection = msg.getData()
-						.getString("closestCarToIntersection");
+				String textClosestCarToIntersection = msg.getData().getString(
+						"closestCarToIntersection");
 				tvClosestCarToIntersection
 						.setText(textClosestCarToIntersection);
+
 				trafficLight.setBackgroundColor(application.trafficLightColor);
 
 				break;
 
-			case VTLApplication.HANDLER_NEW_DISTANCE:
+			case VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_DISTANCE:
 				TextView tvOtherDistanceToIntersection = (TextView) findViewById(R.id.tvOtherDistanceToIntersection);
 				float otherDistanceToIntersection = msg.getData().getFloat(
 						"otherDistanceToIntersection");
@@ -432,6 +349,7 @@ public class VTLActivity extends Activity {
 			super.handleMessage(msg);
 		}
 	};
+
 	private void runTimeThread() {
 
 		new Thread() {
