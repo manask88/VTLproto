@@ -22,7 +22,7 @@ import android.util.Log;
 public class VTLLogicService {
 
 	private boolean runFlagConflictDetection = false;
-	private CloseCar furthestCarFromIntersection;
+	private CloseCar closestCarToIntersection;
 	private final Handler myUpdateHandler;
 	private VTLApplication application;
 	Message msg;
@@ -43,7 +43,7 @@ public class VTLLogicService {
 
 	public VTLLogicService(Context context, Handler handler) {
 		Log.i(TAG, "Service: OnCreate");
-		furthestCarFromIntersection = new CloseCar();
+		closestCarToIntersection = new CloseCar();
 		this.context = context;
 		application = (VTLApplication) context.getApplicationContext();
 
@@ -73,17 +73,17 @@ public class VTLLogicService {
 
 							application.trafficLightColor = VTLApplication.ORANGE;
 
-							furthestCarFromIntersection
+							closestCarToIntersection
 									.setDistance(getDistance(
 											application.getCurrentPositionX(),
 											application.intersection.getX(),
 											application.getCurrentPositionY(),
 											application.intersection.getY()));
 
-							furthestCarFromIntersection
+							closestCarToIntersection
 									.setIPAdress(application.IPAddress);
 
-							furthestCarFromIntersection(closeCars);
+							closestCarToIntersection(closeCars);
 
 							Message msg = myUpdateHandler
 									.obtainMessage(VTLApplication.HANDLER_RX_CONFLICT_DETECTED);
@@ -97,7 +97,7 @@ public class VTLLogicService {
 
 							/* code for the leader */
 							String rawPacket;
-							if (furthestCarFromIntersection.getIPAdress()
+							if (closestCarToIntersection.getIPAdress()
 									.equals(application.IPAddress)) {
 
 								Log.i(TAG,
@@ -135,8 +135,8 @@ public class VTLLogicService {
 								msg = myUpdateHandler
 										.obtainMessage(VTLApplication.HANDLER_NEW_LIGHT_STATUS);
 								Bundle bundle = new Bundle();
-								bundle.putString("furthestCarFromIntersection",
-										furthestCarFromIntersection
+								bundle.putString("closestCarToIntersection",
+										closestCarToIntersection
 												.getIPAdress());
 								msg.setData(bundle);
 								myUpdateHandler.sendMessage(msg);
@@ -177,7 +177,7 @@ public class VTLLogicService {
 								msg = myUpdateHandler
 										.obtainMessage(VTLApplication.HANDLER_NEW_LIGHT_STATUS);
 								bundle = new Bundle();
-								bundle.putString("furthestCarFromIntersection",
+								bundle.putString("closestCarToIntersection",
 										null);
 								msg.setData(bundle);
 								myUpdateHandler.sendMessage(msg);
@@ -195,8 +195,8 @@ public class VTLLogicService {
 								msg = myUpdateHandler
 										.obtainMessage(VTLApplication.HANDLER_NEW_LIGHT_STATUS);
 								bundle = new Bundle();
-								bundle.putString("furthestCarFromIntersection",
-										furthestCarFromIntersection
+								bundle.putString("closestCarToIntersection",
+										closestCarToIntersection
 												.getIPAdress());
 								msg.setData(bundle);
 
@@ -319,7 +319,7 @@ public class VTLLogicService {
 		return (float) Math.sqrt(sqrX + sqrY);
 	}
 
-	void furthestCarFromIntersection(ArrayList<CloseCar> closeNeighbors) {
+	void closestCarToIntersection(ArrayList<CloseCar> closeNeighbors) {
 
 		for (CloseCar closeCar : closeNeighbors) {
 
@@ -342,11 +342,11 @@ public class VTLLogicService {
 						distanceFromOwnIntersecion);
 				msg.setData(bundle);
 
-				if (distanceFromOwnIntersecion > furthestCarFromIntersection
+				if (distanceFromOwnIntersecion < closestCarToIntersection
 						.getDistance()) {
-					furthestCarFromIntersection.setIPAdress(closeCar
+					closestCarToIntersection.setIPAdress(closeCar
 							.getIPAdress());
-					furthestCarFromIntersection
+					closestCarToIntersection
 							.setDistance(distanceFromOwnIntersecion);
 				}
 				Log.i(TAG, "Car with IP " + closeCar.getIPAdress()

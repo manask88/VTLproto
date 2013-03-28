@@ -304,11 +304,11 @@ public class VTLActivity extends Activity {
 
 				break;
 			case VTLApplication.HANDLER_NEW_LIGHT_STATUS:
-				TextView tvFurthestCarFromIntersection = (TextView) findViewById(R.id.tvFurthestCarFromIntersection);
-				String textFurthestCarFromIntersection = msg.getData()
-						.getString("furthestCarFromIntersection");
-				tvFurthestCarFromIntersection
-						.setText(textFurthestCarFromIntersection);
+				TextView tvClosestCarToIntersection = (TextView) findViewById(R.id.tvClosestCarToIntersection);
+				String textClosestCarToIntersection = msg.getData()
+						.getString("closestCarToIntersection");
+				tvClosestCarToIntersection
+						.setText(textClosestCarToIntersection);
 				trafficLight.setBackgroundColor(application.trafficLightColor);
 
 				break;
@@ -409,11 +409,11 @@ public class VTLActivity extends Activity {
 
 				break;
 			case VTLApplication.HANDLER_NEW_LIGHT_STATUS:
-				TextView tvFurthestCarFromIntersection = (TextView) findViewById(R.id.tvFurthestCarFromIntersection);
-				String textFurthestCarFromIntersection = msg.getData()
-						.getString("furthestCarFromIntersection");
-				tvFurthestCarFromIntersection
-						.setText(textFurthestCarFromIntersection);
+				TextView tvClosestCarToIntersection = (TextView) findViewById(R.id.tvClosestCarToIntersection);
+				String textClosestCarToIntersection = msg.getData()
+						.getString("closestCarToIntersection");
+				tvClosestCarToIntersection
+						.setText(textClosestCarToIntersection);
 				trafficLight.setBackgroundColor(application.trafficLightColor);
 
 				break;

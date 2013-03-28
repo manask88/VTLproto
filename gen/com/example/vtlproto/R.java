@@ -39,7 +39,7 @@ public final class R {
         public static final int buttonUp=0x7f09000e;
         public static final int imageView=0x7f090000;
         public static final int trafficLight=0x7f090001;
-        public static final int tvFurthestCarFromIntersection=0x7f090006;
+        public static final int tvClosestCarToIntersection=0x7f090006;
         public static final int tvIPAddress=0x7f09000a;
         public static final int tvIntersection=0x7f090005;
         public static final int tvMyDistanceToIntersection=0x7f090007;
