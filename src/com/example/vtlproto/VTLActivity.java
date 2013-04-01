@@ -279,8 +279,7 @@ public class VTLActivity extends Activity {
 							Log.d(TAG, "got green light message from leader");
 							break;
 						case VTLApplication.MSG_LIGHT_STATUS_RED:
-							
-							
+					
 							
 							application.trafficLightColor = Color.RED;
 							trafficLight
