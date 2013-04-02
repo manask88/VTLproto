@@ -98,7 +98,8 @@
 
     <junction
         id="j_2"
-        intLanes=":j_0_0_0:j_0_1_0:j_0_2_0:j_0_3_0:j_0_4_0:j_0_5_0:j_0_6_0:j_0_7_0"
+        inLanes=":j_0_0_0:j_0_2_0:j_0_4_0:j_0_6_0"
+        outLanes=":j_0_1_0:j_0_3_0:j_0_5_0:j_0_7_0"
         shape="5,5 6,5 6,6 5,6"
         type="traffic_light" >
     </junction>

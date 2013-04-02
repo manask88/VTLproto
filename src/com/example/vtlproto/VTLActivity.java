@@ -78,8 +78,8 @@ public class VTLActivity extends Activity {
 				resetSquare(j, VTLApplication.SIZEY - 1 - i);
 
 			}
-		drawSquare(application.getCurrentPositionX(),
-				application.getCurrentPositionY(), Color.BLUE);
+		drawSquare((int)application.getCurrentPositionX(),
+				(int)application.getCurrentPositionY(), Color.BLUE);
 		buttonStart = (Button) findViewById(R.id.buttonStart);
 		buttonDown = (Button) findViewById(R.id.buttonDown);
 		buttonUp = (Button) findViewById(R.id.buttonUp);
@@ -122,11 +122,11 @@ public class VTLActivity extends Activity {
 				shouldDraw = true;
 
 				// Log.i(VTLActivity.TAG, "Go down");
-				resetSquare(application.getCurrentPositionX(),
-						application.getCurrentPositionY());
+				resetSquare((int)application.getCurrentPositionX(),
+						(int)application.getCurrentPositionY());
 				tvCurrentY.setText(String.valueOf(application.decCurrentY()));
-				drawSquare(application.getCurrentPositionX(),
-						application.getCurrentPositionY(), Color.BLUE);
+				drawSquare((int)application.getCurrentPositionX(),
+						(int)application.getCurrentPositionY(), Color.BLUE);
 
 			}
 		});
@@ -134,32 +134,32 @@ public class VTLActivity extends Activity {
 		buttonUp.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				// Log.i(VTLActivity.TAG, "Go up");
-				resetSquare(application.getCurrentPositionX(),
-						application.getCurrentPositionY());
+				resetSquare((int)application.getCurrentPositionX(),
+						(int)application.getCurrentPositionY());
 				tvCurrentY.setText(String.valueOf(application.incCurrentY()));
-				drawSquare(application.getCurrentPositionX(),
-						application.getCurrentPositionY(), Color.BLUE);
+				drawSquare((int)application.getCurrentPositionX(),
+						(int)application.getCurrentPositionY(), Color.BLUE);
 			}
 		});
 		buttonLeft.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				// Log.i(VTLActivity.TAG, "Go left");
-				resetSquare(application.getCurrentPositionX(),
-						application.getCurrentPositionY());
+				resetSquare((int)application.getCurrentPositionX(),
+						(int)application.getCurrentPositionY());
 				tvCurrentX.setText(String.valueOf(application.decCurrentX()));
-				drawSquare(application.getCurrentPositionX(),
-						application.getCurrentPositionY(), Color.BLUE);
+				drawSquare((int)application.getCurrentPositionX(),
+						(int)application.getCurrentPositionY(), Color.BLUE);
 
 			}
 		});
 		buttonRight.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				// Log.i(VTLActivity.TAG, "Go right");
-				resetSquare(application.getCurrentPositionX(),
-						application.getCurrentPositionY());
+				resetSquare((int)application.getCurrentPositionX(),
+						(int)application.getCurrentPositionY());
 				tvCurrentX.setText(String.valueOf(application.incCurrentX()));
-				drawSquare(application.getCurrentPositionX(),
-						application.getCurrentPositionY(), Color.BLUE);
+				drawSquare((int)application.getCurrentPositionX(),
+						(int)application.getCurrentPositionY(), Color.BLUE);
 
 			}
 		});
@@ -247,16 +247,16 @@ public class VTLActivity extends Activity {
 						numNeighbors++;
 					} else {
 						/* to reset last position */
-						resetSquare(application.hashMapNeighbors.get(IPAddress)
+						resetSquare((int)application.hashMapNeighbors.get(IPAddress)
 								.getX(),
-								application.hashMapNeighbors.get(IPAddress)
+								(int)application.hashMapNeighbors.get(IPAddress)
 										.getY());
 						beaconPacket.setColor(application.hashMapNeighbors.get(
 								IPAddress).getColor());
 						application.hashMapNeighbors.put(IPAddress,
 								beaconPacket);
 					}
-					drawSquare(beaconPacket.getX(), beaconPacket.getY(),
+					drawSquare((int)beaconPacket.getX(),(int) beaconPacket.getY(),
 							beaconPacket.getColor());
 
 					break;
@@ -314,10 +314,10 @@ public class VTLActivity extends Activity {
 
 				trafficLight.setBackgroundColor(application.trafficLightColor);
 				TextView tvIntersection = (TextView) findViewById(R.id.tvIntersection);
-				if (application.intersection != null)
+				if (application.junctionId != null)
 					tvIntersection.setText("x:"
-							+ application.intersection.getX() + " y:"
-							+ application.intersection.getY());
+							+ application.junctionPoint.getX() + " y:"
+							+ application.junctionPoint.getY());
 				else
 					tvIntersection.setText("no");
 
@@ -360,8 +360,8 @@ public class VTLActivity extends Activity {
 							@Override
 							public void run() {
 
-								drawSquare(application.getCurrentPositionX(),
-										application.getCurrentPositionY(),
+								drawSquare((int)application.getCurrentPositionX(),
+										(int)application.getCurrentPositionY(),
 										Color.BLUE);
 								application.time.setToNow();
 								tvTime.setText(application.time
@@ -369,12 +369,12 @@ public class VTLActivity extends Activity {
 
 								/* for debug */
 								float flo = 0;
-								if (application.intersection != null)
+								if (application.junctionId != null)
 									flo = VTLLogicService.getDistance(
 											application.getCurrentPositionX(),
 											application.getCurrentPositionY(),
-											application.intersection.getX(),
-											application.intersection.getY());
+											application.junctionPoint.getX(),
+											application.junctionPoint.getY());
 
 								TextView tvMyDistanceToIntersection = (TextView) findViewById(R.id.tvMyDistanceToIntersection);
 								tvMyDistanceToIntersection.setText(String

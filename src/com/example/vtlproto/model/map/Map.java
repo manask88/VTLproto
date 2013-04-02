@@ -46,7 +46,8 @@ public class Map {
 
 				Log.i(TAG, XMLfunctions.getAttribute(laneNodeList, "id"));
 				lane.setId(XMLfunctions.getAttribute(laneNodeList, "id"));
-				lane.setLength(Float.valueOf(XMLfunctions.getAttribute(laneNodeList, "length")));
+				lane.setLength(Float.valueOf(XMLfunctions.getAttribute(
+						laneNodeList, "length")));
 
 				/* begin parse points in shape */
 				String shape = XMLfunctions.getAttribute(laneNodeList, "shape");
@@ -102,7 +103,7 @@ public class Map {
 
 			for (int k = 0; k < pointsString.length; k++) {
 
-				Log.i(TAG, "got:"+pointsString[k]);
+				Log.i(TAG, "got:" + pointsString[k]);
 				pointsString[k] = pointsString[k].replace("\"", "");
 				String[] pointString = pointsString[k].split(String
 						.valueOf(POINT_SEPARATOR));
@@ -118,26 +119,46 @@ public class Map {
 				junction.setShape(points);
 			/* ends parse points in shape */
 
-			/* begin parse ids in intLanes */
-			String intLanesString = XMLfunctions.getAttribute(junctionNodeList,
-					"intLanes");
-			String[] intLanesStringArray = intLanesString.split(String
+			/* begin parse ids in inLanes */
+			String inLanesString = XMLfunctions.getAttribute(junctionNodeList,
+					"inLanes");
+			String[] inLanesStringArray = inLanesString.split(String
 					.valueOf(INTLANES_SEPARATOR));
 
-			ArrayList<String> intLanes = new ArrayList<String>();
+			ArrayList<String> inLanes = new ArrayList<String>();
 
-			for (int k = 0; k < intLanesStringArray.length; k++) {
+			for (int k = 0; k < inLanesStringArray.length; k++) {
 
-				String intLaneString = ":" + intLanesStringArray[k];
+				String intLaneString = ":" + inLanesStringArray[k];
 
-				intLanes.add(intLaneString);
+				inLanes.add(intLaneString);
 			}
 
-			if (intLanes.size() > 0)
-				junction.setIntLanes(intLanes);
-			/* end parse ids in intLanes */
+			if (inLanes.size() > 0)
+				junction.setInLanes(inLanes);
+			/* end parse ids in inLanes */
 
-			if (junction.getShape() != null && junction.getIntLanes() != null)
+			/* begin parse ids in outLanes */
+			String outLanesString = XMLfunctions.getAttribute(junctionNodeList,
+					"outLanes");
+			String[] outLanesStringArray = outLanesString.split(String
+					.valueOf(INTLANES_SEPARATOR));
+
+			ArrayList<String> outLanes = new ArrayList<String>();
+
+			for (int k = 0; k < outLanesStringArray.length; k++) {
+
+				String outLaneString = ":" + outLanesStringArray[k];
+
+				outLanes.add(outLaneString);
+			}
+
+			if (outLanes.size() > 0)
+				junction.setOutLanes(outLanes);
+			/* end parse ids in outLanes */
+
+			if (junction.getShape() != null
+					&& (junction.getInLanes() != null || junction.getOutLanes() != null))
 				junctions.add(junction);
 
 		}

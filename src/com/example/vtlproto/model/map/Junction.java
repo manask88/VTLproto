@@ -6,7 +6,7 @@ import com.example.vtlproto.model.Point;
 public class Junction {
 
 	String id;
-	ArrayList<String> intLanes;
+	ArrayList<String> inLanes,outLanes;
 	ArrayList<Point> shape;
 
 	public String getId() {
@@ -17,12 +17,21 @@ public class Junction {
 		this.id = id;
 	}
 
-	public ArrayList<String> getIntLanes() {
-		return intLanes;
+	
+	public ArrayList<String> getInLanes() {
+		return inLanes;
 	}
 
-	public void setIntLanes(ArrayList<String> intLanes) {
-		this.intLanes = intLanes;
+	public void setInLanes(ArrayList<String> inLanes) {
+		this.inLanes = inLanes;
+	}
+
+	public ArrayList<String> getOutLanes() {
+		return outLanes;
+	}
+
+	public void setOutLanes(ArrayList<String> outLanes) {
+		this.outLanes = outLanes;
 	}
 
 	public ArrayList<Point> getShape() {

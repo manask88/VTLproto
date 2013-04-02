@@ -61,25 +61,21 @@ public class VTLLogicService {
 			try {
 				while (runFlagConflictDetection) {
 
-					application.intersection = getIntersection(
-							application.getCurrentPositionX(),
-							application.getCurrentPositionY(),
-							application.direction);
-					if (application.intersection != null) {
+					if (application.junctionId != null) {
 
 						ArrayList<CloseCar> closeCars = closeCars();
-						if (application.intersection != null
+						if (application.junctionId != null
 								&& isConflictingIntersection(closeCars)) {
-							
+
 							/* conflict code begins here */
 							application.conflictDetected = true;
 							application.trafficLightColor = VTLApplication.ORANGE;
 
 							closestCarToIntersection.setDistance(getDistance(
 									application.getCurrentPositionX(),
-									application.intersection.getX(),
+									application.junctionPoint.getX(),
 									application.getCurrentPositionY(),
-									application.intersection.getY()));
+									application.junctionPoint.getY()));
 
 							closestCarToIntersection
 									.setIPAdress(application.IPAddress);
@@ -114,8 +110,8 @@ public class VTLLogicService {
 													"%k:%M:%S").toString())
 											.append(VTLApplication.MSG_SEPARATOR)
 											.append(isConflictingDirection(
-													closeCar.getDirection(),
-													application.direction) ? VTLApplication.MSG_LIGHT_STATUS_GREEN
+													closeCar.getDirectionAngle(),
+													application.directionAngle) ? VTLApplication.MSG_LIGHT_STATUS_GREEN
 													: VTLApplication.MSG_LIGHT_STATUS_RED)
 											.toString();
 
@@ -155,8 +151,8 @@ public class VTLLogicService {
 													"%k:%M:%S").toString())
 											.append(VTLApplication.MSG_SEPARATOR)
 											.append(isConflictingDirection(
-													closeCar.getDirection(),
-													application.direction) ? VTLApplication.MSG_LIGHT_STATUS_RED
+													closeCar.getDirectionAngle(),
+													application.directionAngle) ? VTLApplication.MSG_LIGHT_STATUS_RED
 													: VTLApplication.MSG_LIGHT_STATUS_GREEN)
 											.toString();
 
@@ -319,7 +315,7 @@ public class VTLLogicService {
 
 	static float getDistance(float x1, float y1, float x2, float y2) {
 		float sqrX = (float) Math.pow(x1 - x2, 2);
-		float sqrY =  (float) Math.pow(y1 - y2, 2);
+		float sqrY = (float) Math.pow(y1 - y2, 2);
 		return (float) Math.sqrt(sqrX + sqrY);
 	}
 
@@ -327,35 +323,35 @@ public class VTLLogicService {
 
 		for (CloseCar closeCar : closeNeighbors) {
 
-			Point neighborIntersection;
-			float distanceFromOwnIntersecion;
+			String neighborIntersection;
+			float neighbordistanceFromIntersecion;
 
-			neighborIntersection = getIntersection(closeCar.getX(),
-					closeCar.getY(), closeCar.getDirection());
+			neighborIntersection = application.findJunctionByLaneId(closeCar
+					.getLaneId());
 
 			{
-				distanceFromOwnIntersecion = getDistance(
-						neighborIntersection.getX(),
-						neighborIntersection.getY(), closeCar.getX(),
+				neighbordistanceFromIntersecion = getDistance(
+						application.junctionPoint.getX(),
+						application.junctionPoint.getY(), closeCar.getX(),
 						closeCar.getY());
 
 				msg = myUpdateHandler
 						.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_DISTANCE);
 				Bundle bundle = new Bundle();
 				bundle.putFloat("otherDistanceToIntersection",
-						distanceFromOwnIntersecion);
+						neighbordistanceFromIntersecion);
 				msg.setData(bundle);
 
-				if (distanceFromOwnIntersecion < closestCarToIntersection
+				if (neighbordistanceFromIntersecion < closestCarToIntersection
 						.getDistance()) {
 					closestCarToIntersection
 							.setIPAdress(closeCar.getIPAdress());
 					closestCarToIntersection
-							.setDistance(distanceFromOwnIntersecion);
+							.setDistance(neighbordistanceFromIntersecion);
 				}
 				Log.i(TAG, "Car with IP " + closeCar.getIPAdress()
 						+ " has a distance to his intersectionof value: "
-						+ distanceFromOwnIntersecion);
+						+ neighbordistanceFromIntersecion);
 				Log.i(TAG,
 						"My IP "
 								+ application.IPAddress
@@ -363,8 +359,8 @@ public class VTLLogicService {
 								+ getDistance(
 										application.getCurrentPositionX(),
 										application.getCurrentPositionY(),
-										application.intersection.getX(),
-										application.intersection.getY()));
+										application.junctionPoint.getX(),
+										application.junctionPoint.getY()));
 			}
 		}
 
@@ -372,7 +368,7 @@ public class VTLLogicService {
 
 	boolean isConflictingIntersection(ArrayList<CloseCar> closeNeighbors) {
 
-		Point neighborIntersection;
+		String neighborIntersection;
 		float distance;
 
 		if (closeNeighbors == null)
@@ -380,139 +376,19 @@ public class VTLLogicService {
 
 		for (BeaconPacket beaconPacket : closeNeighbors) {
 
-			neighborIntersection = getIntersection(beaconPacket.getX(),
-					beaconPacket.getY(), beaconPacket.getDirection());
+			neighborIntersection = application
+					.findJunctionByLaneId(beaconPacket.getLaneId());
 
 			if (neighborIntersection != null
-					&& isConflictingDirection(beaconPacket.getDirection(),
-							application.direction)) {
-				distance = getDistance(neighborIntersection.getX(),
-						neighborIntersection.getY(),
-						application.intersection.getX(),
-						application.intersection.getY());
+					&& isConflictingDirection(beaconPacket.getDirectionAngle(),
+							application.directionAngle)) {
 
-				if (distance < VTLApplication.DISTANCE_SAME_INTERSECTION)
+				if (neighborIntersection.equals(application.junctionId))
 					return true;
 			}
 		}
 
 		return false;
-
-	}
-
-	public Point getIntersection(int x, int y, Direction direction) {
-		int i = (int) VTLApplication.getIfromY(y);
-		int j = x;
-		boolean found = false;
-
-		switch (direction) {
-		case S:
-			/*
-			 * if (j - 1 < 0) break;
-			 */
-			while (i < VTLApplication.SIZEY) {
-
-				// verifies intersection to right
-				if (j - 1 >= 0 && VTLApplication.ROAD_MATRIX[i][j - 1]) {
-					found = true;
-					break;
-				}
-
-				// verifies intersection to left
-				if ((i - 1 >= 0 && j + 2 < VTLApplication.SIZEX && VTLApplication.ROAD_MATRIX[i - 1][j + 2])
-						&& (j + 2 < VTLApplication.SIZEX && VTLApplication.ROAD_MATRIX[i][j + 2])) {
-					found = true;
-					break;
-				}
-
-				i++;
-			}
-
-			// Log.i(TAG, "i: " + i + " j:" + j);
-			break;
-		case N:
-			/*
-			 * if (j + 1 > VTLApplication.SIZEX - 1) break;
-			 */
-			while (i >= 0) {
-
-				// verifies intersection to right
-				if (j + 1 < VTLApplication.SIZEX
-						&& VTLApplication.ROAD_MATRIX[i][j + 1])
-
-				{
-					found = true;
-					break;
-				}
-
-				// verifies intersection to left
-				if ((i + 1 < VTLApplication.SIZEY && j - 2 >= 0 && VTLApplication.ROAD_MATRIX[i + 1][j - 2])
-						&& (j - 2 >= 0 && VTLApplication.ROAD_MATRIX[i][j - 2])) {
-
-					found = true;
-
-					break;
-				}
-				i--;
-			}
-			break;
-		case W:
-
-			/*
-			 * if (i - 1 < 0) break;
-			 */
-			while (j >= 0) {
-
-				// verifies intersection to right
-				if (i - 1 >= 0 && VTLApplication.ROAD_MATRIX[i - 1][j]) {
-					found = true;
-					break;
-				}
-
-				// verifies intersection to left
-				if ((i + 2 < VTLApplication.SIZEY
-						&& j + 1 < VTLApplication.SIZEX && VTLApplication.ROAD_MATRIX[i + 2][j + 1])
-						&& (i + 2 < VTLApplication.SIZEY && VTLApplication.ROAD_MATRIX[i + 2][j])) {
-					found = true;
-					break;
-				}
-
-				j--;
-			}
-			break;
-		case E:
-
-			/*
-			 * if (i + 1 > VTLApplication.SIZEY + 1) break;
-			 */
-			while (j < VTLApplication.SIZEX) {
-
-				// verifies intersection to right
-
-				if (i + 1 < VTLApplication.SIZEY
-						&& VTLApplication.ROAD_MATRIX[i + 1][j]) {
-					found = true;
-					break;
-				}
-
-				// verifies intersection to left
-
-				if ((i - 2 >= 0 && j - 1 >= 0 && VTLApplication.ROAD_MATRIX[i - 2][j - 1])
-						&& (i - 2 >= 0 && VTLApplication.ROAD_MATRIX[i - 2][j])) {
-					found = true;
-					break;
-				}
-
-				j++;
-
-			}
-			break;
-		}// switch ends
-
-		if (found)
-			return new Point(j, VTLApplication.getYfromI(i));
-		else
-			return null;
 
 	}
 
@@ -531,25 +407,9 @@ public class VTLLogicService {
 
 	}
 
-	public boolean isConflictingDirection(Direction direction1,
-			Direction direction2) {
-
-		if (direction1.compareTo(direction2) == 0)
-			return false;
-		if (direction1.compareTo(Direction.N) == 0
-				&& direction2.compareTo(Direction.S) == 0)
-			return false;
-
-		if (direction1.compareTo(Direction.S) == 0
-				&& direction2.compareTo(Direction.N) == 0)
-			return false;
-
-		if (direction1.compareTo(Direction.W) == 0
-				&& direction2.compareTo(Direction.E) == 0)
-			return false;
-
-		if (direction1.compareTo(Direction.E) == 0
-				&& direction2.compareTo(Direction.W) == 0)
+	public boolean isConflictingDirection(float angle1, float angle2) {
+		float difference = Math.abs(angle1 - angle2);
+		if (difference == 0 || difference == 180)
 			return false;
 
 		return true;

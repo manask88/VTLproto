@@ -83,40 +83,32 @@ public class VTLApplication extends Application {
 			{ false, false, false, false, true, true, false, false, false,
 					false } };
 
-	/*public final static boolean[][] ROAD_MATRIX = {
-			{ false, false, false, false, false, true, true, false, false,
-					false, false, false },
-			{ false, false, false, false, false, true, true, false, false,
-					false, false, false },
-			{ false, false, false, false, false, true, true, false, false,
-					false, false, false },
-			{ false, false, false, false, false, true, true, false, false,
-					false, false, false },
-			{ false, false, false, false, false, true, true, false, false,
-					false, false, false },
+	/*
+	 * public final static boolean[][] ROAD_MATRIX = { { false, false, false,
+	 * false, false, true, true, false, false, false, false, false }, { false,
+	 * false, false, false, false, true, true, false, false, false, false, false
+	 * }, { false, false, false, false, false, true, true, false, false, false,
+	 * false, false }, { false, false, false, false, false, true, true, false,
+	 * false, false, false, false }, { false, false, false, false, false, true,
+	 * true, false, false, false, false, false },
+	 * 
+	 * { true, true, true, true, true, true, true, true, true, true, true, true
+	 * }, { true, true, true, true, true, true, true, true, true, true, true,
+	 * true }, { false, false, false, false, false, true, true, false, false,
+	 * false, false, false }, { false, false, false, false, false, true, true,
+	 * false, false, false, false, false }, { false, false, false, false, false,
+	 * true, true, false, false, false, false, false }, { false, false, false,
+	 * false, false, true, true, false, false, false, false, false }, { false,
+	 * false, false, false, false, true, true, false, false, false, false, false
+	 * } };
+	 */
 
-			{ true, true, true, true, true, true, true, true, true, true, true,
-					true },
-			{ true, true, true, true, true, true, true, true, true, true, true,
-					true },
-			{ false, false, false, false, false, true, true, false, false,
-					false, false, false },
-			{ false, false, false, false, false, true, true, false, false,
-					false, false, false },
-			{ false, false, false, false, false, true, true, false, false,
-					false, false, false },
-			{ false, false, false, false, false, true, true, false, false,
-					false, false, false },
-			{ false, false, false, false, false, true, true, false, false,
-					false, false, false } };
-*/
-	
-	public static  boolean[][] ROAD_MATRIX=new boolean[12][12];
+	public static boolean[][] ROAD_MATRIX = new boolean[12][12];
 
-	public static final int SIZEX=ROAD_MATRIX.length;
-	public final static int SIZEY=ROAD_MATRIX.length;
+	public static final int SIZEX = ROAD_MATRIX.length;
+	public final static int SIZEY = ROAD_MATRIX.length;
 	private static final String TAG = VTLApplication.class.getSimpleName();
-	private int currentPositionX, currentPositionY;
+	private float currentPositionX, currentPositionY;
 	public final static int PORT = 8888;
 	public final static int PORT_2 = 8889;
 	public boolean isBroadCastTX;
@@ -150,7 +142,7 @@ public class VTLApplication extends Application {
 	public Time time;
 	public String IPAddress;
 	public int trafficLightColor;
-	public Point intersection;
+	public Point junctionPoint;
 	public Direction direction;
 	public HashMap<String, BeaconPacket> hashMapNeighbors;
 	public BeaconService beaconService;
@@ -158,38 +150,54 @@ public class VTLApplication extends Application {
 	public boolean conflictDetected = false;
 
 	public boolean waitingForLeaderMessage = false;
+	public String junctionId, laneId;
+	public float directionAngle;
+	private Map map;
 
-	public int getCurrentPositionX() {
+	public float getCurrentPositionX() {
 		return currentPositionX;
 	}
 
-	public int getCurrentPositionY() {
+	public float getCurrentPositionY() {
 		return currentPositionY;
 	}
 
-	public int incCurrentX() {
-		setCurrentPositionX(currentPositionX + 1);
+	public float incCurrentX() {
+		setCurrentPosition(new Point(currentPositionX + 1,currentPositionY));
+	return currentPositionX;
+	}
+
+	public float incCurrentY() {
+		setCurrentPosition(new Point(currentPositionX ,currentPositionY+1));
+		return currentPositionY;
+	}
+
+	public float decCurrentX() {
+		setCurrentPosition(new Point(currentPositionX - 1,currentPositionY));
 		return currentPositionX;
 	}
 
-	public int incCurrentY() {
-		setCurrentPositionY(currentPositionY + 1);
+	public float decCurrentY() {
+		setCurrentPosition(new Point(currentPositionX ,currentPositionY-1));
 		return currentPositionY;
 	}
 
-	public int decCurrentX() {
-		setCurrentPositionX(currentPositionX - 1);
-		return currentPositionX;
+	public void setCurrentPosition(Point newPoint) {
+
+		Point oldPoint = new Point(currentPositionX, currentPositionY);
+		setCurrentPositionY(newPoint.getY());
+		setCurrentPositionX(newPoint.getX());
+
+		if (oldPoint.getX() != newPoint.getX()
+				|| oldPoint.getY() != newPoint.getY())
+			refreshParams(oldPoint, newPoint);
+
 	}
 
-	public int decCurrentY() {
-		setCurrentPositionY(currentPositionY - 1);
-		return currentPositionY;
-	}
-
-	public void setCurrentPositionY(int newPositionY) {
-		if ((newPositionY < SIZEY) && (newPositionY >= 0)
-				&& (ROAD_MATRIX[SIZEY - 1 - newPositionY][currentPositionX])) {
+	public void setCurrentPositionY(float newPositionY) {
+		if ((newPositionY < SIZEY)
+				&& (newPositionY >= 0)
+				&& (ROAD_MATRIX[(int) (SIZEY - 1 - newPositionY)][(int) currentPositionX])) {
 			Log.d(TAG, "j : " + currentPositionX + " i: "
 					+ (SIZEY - 1 - newPositionY));
 			if (newPositionY > currentPositionY)
@@ -201,9 +209,10 @@ public class VTLApplication extends Application {
 		}
 	}
 
-	public void setCurrentPositionX(int newPositionX) {
-		if ((newPositionX < SIZEX) && (newPositionX >= 0)
-				&& (ROAD_MATRIX[SIZEY - 1 - currentPositionY][newPositionX])) {
+	public void setCurrentPositionX(float newPositionX) {
+		if ((newPositionX < SIZEX)
+				&& (newPositionX >= 0)
+				&& (ROAD_MATRIX[(int) (SIZEY - 1 - currentPositionY)][(int) newPositionX])) {
 			Log.d(TAG, "j : " + newPositionX + " i: "
 					+ (SIZEY - 1 - currentPositionY));
 
@@ -229,7 +238,7 @@ public class VTLApplication extends Application {
 		}
 
 		String s = readTextFile(inputStream);
-		Map map = new Map(s);
+		map = new Map(s);
 		setBooleanMap(map);
 		direction = Direction.N;
 		isBroadCastTX = true;
@@ -348,75 +357,68 @@ public class VTLApplication extends Application {
 		return outputStream.toString();
 	}
 
-	
-	private void setBooleanMap(Map map){
-		
-		
+	private void setBooleanMap(Map map) {
+
 		for (Edge edge : map.getEdges()) {
 			for (Lane lane : edge.getLanes()) {
 
 				Point origin = lane.getShape().get(0);
 				Point end = lane.getShape().get(1);
-				
-				Log.i(TAG, "origin:x:"+origin.getX()+",y:"+origin.getY());
-				Log.i(TAG, "end:x:"+end.getX()+",y:"+end.getY());
 
-				float distanceX=end.getX()-origin.getX();
-				float distanceY=end.getY()-origin.getY();
-				
+				//Log.i(TAG, "origin:x:" + origin.getX() + ",y:" + origin.getY());
+				//Log.i(TAG, "end:x:" + end.getX() + ",y:" + end.getY());
+
+				float distanceX = end.getX() - origin.getX();
+				float distanceY = end.getY() - origin.getY();
+
 				float length = lane.getLength();
-				
-				for (float i=0;i<=length;i++)
-				{
-					float x,y;
-					if (distanceX>=0)
-						x=origin.getX()+i*distanceX/length;
+
+				for (float i = 0; i <= length; i++) {
+					float x, y;
+					if (distanceX >= 0)
+						x = origin.getX() + i * distanceX / length;
 					else
-						x=end.getX()+i*-distanceX/length;
-					
-					
-					if (distanceY>=0)
-						y=origin.getY()+i*distanceY/length;
+						x = end.getX() + i * -distanceX / length;
+
+					if (distanceY >= 0)
+						y = origin.getY() + i * distanceY / length;
 					else
-						y=end.getY()+i*-distanceY/length;
-					Log.i(TAG, "trying to access ceel x:"+x+",y"+y);
-					//Log.i(TAG, "trying to access ceel i:"+getIfromY(y)+",j"+x);
-					ROAD_MATRIX[(int) (x)][(int) getIfromY(y)]=true;
+						y = end.getY() + i * -distanceY / length;
+					//Log.i(TAG, "trying to access ceel x:" + x + ",y" + y);
 					
-					
+					ROAD_MATRIX[(int) (x)][(int) getIfromY(y)] = true;
+
 				}
-				
-				
 
 			}
 
 		}
-		
+
 		for (Junction junction : map.getJunctions()) {
 			for (Point point : junction.getShape()) {
 
-				
-				ROAD_MATRIX[(int) (point.getX())][(int) getIfromY(point.getY())]=true;
-				
+				ROAD_MATRIX[(int) (point.getX())][(int) getIfromY(point.getY())] = true;
 
 			}
 
 		}
-		
-		
-		
+
 	}
-	
+
 	private String findLane(Map map, float x, float y) {
 
 		for (Edge edge : map.getEdges()) {
 			for (Lane lane : edge.getLanes()) {
 
 				Point origin = lane.getShape().get(0);
-				Point end = lane.getShape().get(0);
+				Point end = lane.getShape().get(1);
 
 				if (origin.getX() <= x && x <= end.getX() && origin.getY() <= y
 						&& y <= end.getY())
+					return lane.getId();
+				
+				if (end.getX() <= x && x <= origin.getX() && end.getY() <= y
+						&& y <= origin.getY())
 					return lane.getId();
 
 			}
@@ -428,10 +430,10 @@ public class VTLApplication extends Application {
 
 	}
 
-	private String findJunction(Map map, String laneId) {
+	public String findJunctionByLaneId(String laneId) {
 
 		for (Junction junction : map.getJunctions()) {
-			for (String laneIdToCompare : junction.getIntLanes()) {
+			for (String laneIdToCompare : junction.getInLanes()) {
 
 				if (laneIdToCompare.equals(laneId))
 					return junction.getId();
@@ -442,4 +444,66 @@ public class VTLApplication extends Application {
 		return null;
 
 	}
+
+	public void setJunctionAndPointByLaneId(String laneId) {
+
+		junctionId = null;
+		junctionPoint = new Point(0, 0);
+
+		for (Junction junction : map.getJunctions()) {
+			for (String laneIdToCompare : junction.getInLanes()) {
+
+				
+				
+				if (laneIdToCompare.equals(laneId)) {
+
+					
+					junctionId=junction.getId();
+					for (Point junctionPointToAdd : junction.getShape()) {
+
+						junctionPoint.setX(junctionPointToAdd.getX()
+								+ junctionPoint.getX());
+						junctionPoint.setY(junctionPointToAdd.getY()
+								+ junctionPoint.getY());
+
+					}
+
+					if (junction.getShape().size() > 0) {
+						junctionPoint.setX(junctionPoint.getX()
+								/ junction.getShape().size());
+						junctionPoint.setY(junctionPoint.getY()
+								/ junction.getShape().size());
+					}
+					return;
+				}
+			}
+
+		}
+
+	}
+
+	public float getAngle(Point oldPoint, Point newPoint) {
+		float angle = (float) Math.toDegrees(Math.atan2(newPoint.getX()
+				- oldPoint.getX(), newPoint.getY() - oldPoint.getY()));
+		
+		/*float angle = (float) Math.toDegrees(Math.atan2(oldPoint.getX()
+				- newPoint.getX(), oldPoint.getY() - newPoint.getY()));*/
+
+		if (angle < 0) {
+			angle += 360;
+		}
+
+		
+		
+		return angle;
+	}
+
+	public void refreshParams(Point oldPoint, Point newPoint) {
+		directionAngle = getAngle(oldPoint, newPoint);
+		laneId = findLane(map, newPoint.getX(), newPoint.getY());
+		setJunctionAndPointByLaneId(laneId);
+		//Log.i(TAG, "Direction Angle:"+directionAngle);
+
+	}
+
 }

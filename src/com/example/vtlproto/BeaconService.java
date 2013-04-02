@@ -207,7 +207,11 @@ public class BeaconService {
 							.append(VTLApplication.MSG_SEPARATOR)
 							.append(application.getCurrentPositionY()))
 							.append(VTLApplication.MSG_SEPARATOR)
-							.append(application.direction)
+							.append(application.directionAngle)
+							.append(VTLApplication.MSG_SEPARATOR)
+							.append(application.laneId)
+							.append(VTLApplication.MSG_SEPARATOR)
+							.append("0")
 
 							.toString();
 

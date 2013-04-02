@@ -6,13 +6,16 @@ public class CloseCar extends BeaconPacket {
 
 	public CloseCar(BeaconPacket beaconPacket) {
 
-		super.setColor(beaconPacket.getColor());
-		super.setDirection(beaconPacket.getDirection());
-		super.setIPAdress(beaconPacket.getIPAdress());
-		super.setTime(beaconPacket.getTime());
 		super.setType(beaconPacket.getType());
+		super.setTime(beaconPacket.getTime());
 		super.setX(beaconPacket.getX());
 		super.setY(beaconPacket.getY());
+		super.setDirectionAngle(beaconPacket.getDirectionAngle());
+		super.setLaneId(beaconPacket.getLaneId());
+		super.setVTLLeader(beaconPacket.isVTLLeader);
+		super.setIPAdress(beaconPacket.getIPAdress());
+		super.setColor(beaconPacket.getColor());
+
 		distance = 0;
 	}
 

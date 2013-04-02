@@ -6,11 +6,13 @@ import com.example.vtlproto.VTLApplication.Direction;
 
 public class BeaconPacket {
 
-	private int x,y;
-	private String time;
-	private String IPAdress;
-	private Direction direction;
 	private String type;
+	private String time;
+	private float x,y;
+	private float directionAngle;
+	private String laneId;
+	boolean isVTLLeader;
+	private String IPAdress;
 	private int color;
 	
 	public int getColor() {
@@ -26,30 +28,25 @@ public class BeaconPacket {
 		String[] fields=rawPacket.split(String.valueOf(VTLApplication.MSG_SEPARATOR));
 		type=fields[0];
 		time=fields[1];
-		x=Integer.parseInt(fields[2]);
-		y=Integer.parseInt(fields[3]);
-		direction=Direction.valueOf(fields[4]);
-		IPAdress=fields[5];
+		x=Float.valueOf(fields[2]);
+		y=Float.valueOf(fields[3]);
+		directionAngle=Float.valueOf(fields[4]);
+		laneId=fields[5];
+		isVTLLeader=fields[5].equals("0")?false:true;
+		IPAdress=fields[6];
 	}
 
 	public BeaconPacket()
 	{
 		
 	}
-	public int getX() {
-		return x;
+
+	public String getType() {
+		return type;
 	}
 
-	public void setX(int x) {
-		this.x = x;
-	}
-
-	public int getY() {
-		return y;
-	}
-
-	public void setY(int y) {
-		this.y = y;
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	public String getTime() {
@@ -60,6 +57,46 @@ public class BeaconPacket {
 		this.time = time;
 	}
 
+	public float getX() {
+		return x;
+	}
+
+	public void setX(float x) {
+		this.x = x;
+	}
+
+	public float getY() {
+		return y;
+	}
+
+	public void setY(float y) {
+		this.y = y;
+	}
+
+	public float getDirectionAngle() {
+		return directionAngle;
+	}
+
+	public void setDirectionAngle(float directionAngle) {
+		this.directionAngle = directionAngle;
+	}
+
+	public String getLaneId() {
+		return laneId;
+	}
+
+	public void setLaneId(String laneId) {
+		this.laneId = laneId;
+	}
+
+	public boolean isVTLLeader() {
+		return isVTLLeader;
+	}
+
+	public void setVTLLeader(boolean isVTLLeader) {
+		this.isVTLLeader = isVTLLeader;
+	}
+
 	public String getIPAdress() {
 		return IPAdress;
 	}
@@ -67,21 +104,6 @@ public class BeaconPacket {
 	public void setIPAdress(String iPAdress) {
 		IPAdress = iPAdress;
 	}
-
-	public Direction getDirection() {
-		return direction;
-	}
-
-	public void setDirection(Direction direction) {
-		this.direction = direction;
-	}
-
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
+	
 	
 }
