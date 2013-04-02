@@ -1,4 +1,4 @@
-package com.example.vtlproto.model;
+package com.example.vtlproto.model.map;
 
 public class Point {
 

@@ -317,9 +317,9 @@ public class VTLLogicService {
 
 	}
 
-	static float getDistance(int x1, int y1, int x2, int y2) {
-		int sqrX = (int) Math.pow(x1 - x2, 2);
-		int sqrY = (int) Math.pow(y1 - y2, 2);
+	static float getDistance(float x1, float y1, float x2, float y2) {
+		float sqrX = (float) Math.pow(x1 - x2, 2);
+		float sqrY =  (float) Math.pow(y1 - y2, 2);
 		return (float) Math.sqrt(sqrX + sqrY);
 	}
 
@@ -401,7 +401,7 @@ public class VTLLogicService {
 	}
 
 	public Point getIntersection(int x, int y, Direction direction) {
-		int i = VTLApplication.getIfromY(y);
+		int i = (int) VTLApplication.getIfromY(y);
 		int j = x;
 		boolean found = false;
 

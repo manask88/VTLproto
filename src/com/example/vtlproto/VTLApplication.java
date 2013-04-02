@@ -1,5 +1,8 @@
 package com.example.vtlproto;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -13,10 +16,16 @@ import java.util.List;
 import org.apache.http.conn.util.InetAddressUtils;
 
 import com.example.vtlproto.model.BeaconPacket;
+import com.example.vtlproto.model.CloseCar;
 import com.example.vtlproto.model.Point;
+import com.example.vtlproto.model.map.Edge;
+import com.example.vtlproto.model.map.Junction;
+import com.example.vtlproto.model.map.Lane;
+import com.example.vtlproto.model.map.Map;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
@@ -73,23 +82,39 @@ public class VTLApplication extends Application {
 					false },
 			{ false, false, false, false, true, true, false, false, false,
 					false } };
-	
-	public final static boolean[][] ROAD_MATRIX = {
-		{ false, false, false, false, false, true, true, false, false, false,false,	false },
-		{ false, false, false, false, false, true, true, false, false, false,false,	false },
-		{ false, false, false, false, false, true, true, false, false, false,false,	false },
-		{ false, false, false, false, false, true, true, false, false, false,false,	false },
-		{ false, false, false, false, false, true, true, false, false, false,false,	false },
 
-		{ true, true, true, true, true, true, true, true, true, true ,true,true},
-		{ true, true, true, true, true, true, true, true, true, true ,true,true},
-		{ false, false, false, false, false, true, true, false, false, false,false,	false },
-		{ false, false, false, false, false, true, true, false, false, false,false,	false },
-		{ false, false, false, false, false, true, true, false, false, false,false,	false },
-		{ false, false, false, false, false, true, true, false, false, false,false,	false },
-		{ false, false, false, false, false, true, true, false, false, false,false,	false }
- };
+	/*public final static boolean[][] ROAD_MATRIX = {
+			{ false, false, false, false, false, true, true, false, false,
+					false, false, false },
+			{ false, false, false, false, false, true, true, false, false,
+					false, false, false },
+			{ false, false, false, false, false, true, true, false, false,
+					false, false, false },
+			{ false, false, false, false, false, true, true, false, false,
+					false, false, false },
+			{ false, false, false, false, false, true, true, false, false,
+					false, false, false },
+
+			{ true, true, true, true, true, true, true, true, true, true, true,
+					true },
+			{ true, true, true, true, true, true, true, true, true, true, true,
+					true },
+			{ false, false, false, false, false, true, true, false, false,
+					false, false, false },
+			{ false, false, false, false, false, true, true, false, false,
+					false, false, false },
+			{ false, false, false, false, false, true, true, false, false,
+					false, false, false },
+			{ false, false, false, false, false, true, true, false, false,
+					false, false, false },
+			{ false, false, false, false, false, true, true, false, false,
+					false, false, false } };
+*/
 	
+	public static  boolean[][] ROAD_MATRIX=new boolean[12][12];
+
+	public static final int SIZEX=ROAD_MATRIX.length;
+	public final static int SIZEY=ROAD_MATRIX.length;
 	private static final String TAG = VTLApplication.class.getSimpleName();
 	private int currentPositionX, currentPositionY;
 	public final static int PORT = 8888;
@@ -100,12 +125,10 @@ public class VTLApplication extends Application {
 	public static final int SLEEPTIME_TRAFFIC_LIGHT = 10000;
 
 	public static final int SLEEPTIME_CONFLICTDETECTION = 1000;
-	public static  String BROADCASTADDRESS;
+	public static String BROADCASTADDRESS;
 	public static final int DISTANCE_CLOSE = 10;
 	public static final int DISTANCE_SAME_INTERSECTION = 2;
 
-	public static final int SIZEX = ROAD_MATRIX.length;
-	public final static int SIZEY = ROAD_MATRIX.length;
 	public final static int MAX_NEIGHBORS = 4;
 	public final static int OFFSETY = 0;
 	public final static int ORANGE = Color.rgb(0xff, 0xa5, 0);
@@ -124,7 +147,6 @@ public class VTLApplication extends Application {
 	public final static char MSG_LIGHT_STATUS_GREEN = 'G';
 	public final static char MSG_LIGHT_STATUS_RED = 'R';
 
-
 	public Time time;
 	public String IPAddress;
 	public int trafficLightColor;
@@ -132,10 +154,10 @@ public class VTLApplication extends Application {
 	public Direction direction;
 	public HashMap<String, BeaconPacket> hashMapNeighbors;
 	public BeaconService beaconService;
-	public  boolean beaconServiceStatus=false;
-	public  boolean conflictDetected=false;
+	public boolean beaconServiceStatus = false;
+	public boolean conflictDetected = false;
 
-	public  boolean waitingForLeaderMessage=false;
+	public boolean waitingForLeaderMessage = false;
 
 	public int getCurrentPositionX() {
 		return currentPositionX;
@@ -197,6 +219,18 @@ public class VTLApplication extends Application {
 	@Override
 	public void onCreate() {
 		super.onCreate();
+
+		AssetManager assetManager = getAssets();
+		InputStream inputStream = null;
+		try {
+			inputStream = assetManager.open("map.xml");
+		} catch (IOException e) {
+			Log.e("tag", e.getMessage());
+		}
+
+		String s = readTextFile(inputStream);
+		Map map = new Map(s);
+		setBooleanMap(map);
 		direction = Direction.N;
 		isBroadCastTX = true;
 		currentPositionX = SIZEX / 2;
@@ -208,32 +242,39 @@ public class VTLApplication extends Application {
 		WifiManager wifiManager = (WifiManager) this
 				.getSystemService(Context.WIFI_SERVICE);
 		if (wifiManager.isWifiEnabled() == true) {
-			
+
 			// Log.d(TAG, "You are connected to WIFI "+
 			// wifiManager.getConnectionInfo());
 			WifiInfo wifiInfo = wifiManager.getConnectionInfo();
 			DhcpInfo dhcp = wifiManager.getDhcpInfo();
-			int broadcastAddress = (dhcp.ipAddress & dhcp.netmask) | ~dhcp.netmask;
+			int broadcastAddress = (dhcp.ipAddress & dhcp.netmask)
+					| ~dhcp.netmask;
 			int ipAddress = wifiInfo.getIpAddress();
 			IPAddress = android.text.format.Formatter
 					.formatIpAddress(ipAddress);
-			//MulticastLock ml = wifiManager.createMulticastLock("just some tag text"); //ADDED THIS
-			//ml.acquire();  //ADDED THIS
-			
-			//Settings.System.putInt(getContentResolver(), Settings.System.WIFI_SLEEP_POLICY, Settings.System.WIFI_SLEEP_POLICY_NEVER); //ADDED THIS
-			/*BROADCASTADDRESS = android.text.format.Formatter
-					.formatIpAddress(broadcastAddress);*/
-					BROADCASTADDRESS="255.255.255.255";
-			//BROADCASTADDRESS = "10.20.1.255";
-			} else {
+			// MulticastLock ml =
+			// wifiManager.createMulticastLock("just some tag text"); //ADDED
+			// THIS
+			// ml.acquire(); //ADDED THIS
+
+			// Settings.System.putInt(getContentResolver(),
+			// Settings.System.WIFI_SLEEP_POLICY,
+			// Settings.System.WIFI_SLEEP_POLICY_NEVER); //ADDED THIS
+			/*
+			 * BROADCASTADDRESS = android.text.format.Formatter
+			 * .formatIpAddress(broadcastAddress);
+			 */
+			BROADCASTADDRESS = "255.255.255.255";
+			// BROADCASTADDRESS = "10.20.1.255";
+		} else {
 			Log.e(TAG, "You are NOT connected to WIFI");
 			IPAddress = getIPAddress(true);
 			/* gets ip in case its using wifi direct */
 			BROADCASTADDRESS = "192.168.49.255";
 		}
 
-
 	}
+
 	@Override
 	public void onTerminate() {
 		super.onTerminate();
@@ -246,7 +287,8 @@ public class VTLApplication extends Application {
 					.list(NetworkInterface.getNetworkInterfaces());
 			for (NetworkInterface intf : interfaces) {
 
-				if (intf.getName().equals("wlan0") || intf.getName().equals("p2p-wlan0-0"))
+				if (intf.getName().equals("wlan0")
+						|| intf.getName().equals("p2p-wlan0-0"))
 
 				{
 
@@ -279,13 +321,125 @@ public class VTLApplication extends Application {
 		return "";
 	}
 
-	public static int getIfromY(int y) {
+	public static float getIfromY(float y) {
 		return (SIZEY - 1 - y);
 
 	}
 
-	public static int getYfromI(int i) {
+	public static float getYfromI(float i) {
 		return (SIZEY - 1 - i);
+
+	}
+
+	private String readTextFile(InputStream inputStream) {
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+		byte buf[] = new byte[1024];
+		int len;
+		try {
+			while ((len = inputStream.read(buf)) != -1) {
+				outputStream.write(buf, 0, len);
+			}
+			outputStream.close();
+			inputStream.close();
+		} catch (IOException e) {
+
+		}
+		return outputStream.toString();
+	}
+
+	
+	private void setBooleanMap(Map map){
+		
+		
+		for (Edge edge : map.getEdges()) {
+			for (Lane lane : edge.getLanes()) {
+
+				Point origin = lane.getShape().get(0);
+				Point end = lane.getShape().get(1);
+				
+				Log.i(TAG, "origin:x:"+origin.getX()+",y:"+origin.getY());
+				Log.i(TAG, "end:x:"+end.getX()+",y:"+end.getY());
+
+				float distanceX=end.getX()-origin.getX();
+				float distanceY=end.getY()-origin.getY();
+				
+				float length = lane.getLength();
+				
+				for (float i=0;i<=length;i++)
+				{
+					float x,y;
+					if (distanceX>=0)
+						x=origin.getX()+i*distanceX/length;
+					else
+						x=end.getX()+i*-distanceX/length;
+					
+					
+					if (distanceY>=0)
+						y=origin.getY()+i*distanceY/length;
+					else
+						y=end.getY()+i*-distanceY/length;
+					Log.i(TAG, "trying to access ceel x:"+x+",y"+y);
+					//Log.i(TAG, "trying to access ceel i:"+getIfromY(y)+",j"+x);
+					ROAD_MATRIX[(int) (x)][(int) getIfromY(y)]=true;
+					
+					
+				}
+				
+				
+
+			}
+
+		}
+		
+		for (Junction junction : map.getJunctions()) {
+			for (Point point : junction.getShape()) {
+
+				
+				ROAD_MATRIX[(int) (point.getX())][(int) getIfromY(point.getY())]=true;
+				
+
+			}
+
+		}
+		
+		
+		
+	}
+	
+	private String findLane(Map map, float x, float y) {
+
+		for (Edge edge : map.getEdges()) {
+			for (Lane lane : edge.getLanes()) {
+
+				Point origin = lane.getShape().get(0);
+				Point end = lane.getShape().get(0);
+
+				if (origin.getX() <= x && x <= end.getX() && origin.getY() <= y
+						&& y <= end.getY())
+					return lane.getId();
+
+			}
+
+		}
+
+		/* not found */
+		return null;
+
+	}
+
+	private String findJunction(Map map, String laneId) {
+
+		for (Junction junction : map.getJunctions()) {
+			for (String laneIdToCompare : junction.getIntLanes()) {
+
+				if (laneIdToCompare.equals(laneId))
+					return junction.getId();
+			}
+
+		}
+
+		return null;
 
 	}
 }
