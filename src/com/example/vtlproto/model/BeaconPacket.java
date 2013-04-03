@@ -1,7 +1,6 @@
 package com.example.vtlproto.model;
 
 import com.example.vtlproto.VTLApplication;
-import com.example.vtlproto.VTLApplication.Direction;
 
 
 public class BeaconPacket {
@@ -32,8 +31,8 @@ public class BeaconPacket {
 		y=Float.valueOf(fields[3]);
 		directionAngle=Float.valueOf(fields[4]);
 		laneId=fields[5];
-		isVTLLeader=fields[5].equals("0")?false:true;
-		IPAdress=fields[6];
+		isVTLLeader=fields[6].equals("0")?false:true;
+		IPAdress=fields[7];
 	}
 
 	public BeaconPacket()

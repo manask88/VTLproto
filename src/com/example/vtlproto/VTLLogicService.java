@@ -3,13 +3,18 @@ package com.example.vtlproto;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
-import com.example.vtlproto.VTLApplication.Direction;
 import com.example.vtlproto.model.BeaconPacket;
 import com.example.vtlproto.model.CloseCar;
+import com.example.vtlproto.model.NameValue;
 import com.example.vtlproto.model.Point;
+import com.example.vtlproto.model.TrafficLightPacket;
+import com.example.vtlproto.model.map.Edge;
+import com.example.vtlproto.model.map.Junction;
+import com.example.vtlproto.model.map.Lane;
 
 import android.content.Context;
 import android.content.Intent;
@@ -69,7 +74,8 @@ public class VTLLogicService {
 
 							/* conflict code begins here */
 							application.conflictDetected = true;
-							application.trafficLightColor = VTLApplication.ORANGE;
+							// application.trafficLightColor =
+							// VTLApplication.ORANGE;
 
 							closestCarToIntersection.setDistance(getDistance(
 									application.getCurrentPositionX(),
@@ -93,40 +99,12 @@ public class VTLLogicService {
 							 */
 
 							/* code for the leader */
-							String rawPacket;
+
 							if (closestCarToIntersection.getIPAdress().equals(
 									application.IPAddress)) {
 
 								Log.i(TAG,
-										"I am the leader, so i send a unicast packet");
-								for (CloseCar closeCar : closeCars) {
-
-									Log.i(TAG, "ill send messages to this car "
-											+ closeCar.getIPAdress());
-									rawPacket = new StringBuilder(
-											String.valueOf(VTLApplication.MSG_TYPE_LIGHT_STATUS))
-											.append(VTLApplication.MSG_SEPARATOR)
-											.append(application.time.format(
-													"%k:%M:%S").toString())
-											.append(VTLApplication.MSG_SEPARATOR)
-											.append(isConflictingDirection(
-													closeCar.getDirectionAngle(),
-													application.directionAngle) ? VTLApplication.MSG_LIGHT_STATUS_GREEN
-													: VTLApplication.MSG_LIGHT_STATUS_RED)
-											.toString();
-
-									Intent serviceIntent = new Intent(context,
-											SendUnicastService.class);
-									serviceIntent.putExtra(
-											SendUnicastService.EXTRAS_DST_IP,
-											closeCar.getIPAdress());
-									serviceIntent
-											.putExtra(
-													SendUnicastService.EXTRAS_RAW_PACKET,
-													rawPacket);
-
-									context.startService(serviceIntent);
-								}
+										"I am the leader, so i send a broadcast packet");
 
 								application.trafficLightColor = Color.RED;
 								msg = myUpdateHandler
@@ -136,38 +114,11 @@ public class VTLLogicService {
 										closestCarToIntersection.getIPAdress());
 								msg.setData(bundle);
 								myUpdateHandler.sendMessage(msg);
-
-								Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
+								VTLStatusSender(Color.RED);
+								//Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
 
 								Log.i(TAG,
-										"I am the leader, so i send a unicast packet");
-								for (CloseCar closeCar : closeCars) {
-
-									;
-									rawPacket = new StringBuilder(
-											String.valueOf(VTLApplication.MSG_TYPE_LIGHT_STATUS))
-											.append(VTLApplication.MSG_SEPARATOR)
-											.append(application.time.format(
-													"%k:%M:%S").toString())
-											.append(VTLApplication.MSG_SEPARATOR)
-											.append(isConflictingDirection(
-													closeCar.getDirectionAngle(),
-													application.directionAngle) ? VTLApplication.MSG_LIGHT_STATUS_RED
-													: VTLApplication.MSG_LIGHT_STATUS_GREEN)
-											.toString();
-
-									Intent serviceIntent = new Intent(context,
-											SendUnicastService.class);
-									serviceIntent.putExtra(
-											SendUnicastService.EXTRAS_DST_IP,
-											closeCar.getIPAdress());
-									serviceIntent
-											.putExtra(
-													SendUnicastService.EXTRAS_RAW_PACKET,
-													rawPacket);
-
-									context.startService(serviceIntent);
-								}
+										"I am the leader, so i send a broadcast packet");
 
 								application.trafficLightColor = Color.GREEN;
 								msg = myUpdateHandler
@@ -177,8 +128,14 @@ public class VTLLogicService {
 										null);
 								msg.setData(bundle);
 								myUpdateHandler.sendMessage(msg);
+								VTLStatusSender(Color.GREEN);
 
-								Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
+								 msg = myUpdateHandler
+											.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS);
+									myUpdateHandler.sendMessage(msg);
+									application.trafficLightColor = Color.WHITE;
+									application.conflictDetected = false;
+								//Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
 
 								/* code for leader ends here */
 
@@ -188,27 +145,46 @@ public class VTLLogicService {
 								Log.i(TAG,
 										"I am not the leader, so i am waiting for the leader");
 
-								application.trafficLightColor = VTLApplication.ORANGE;
-
-								msg = myUpdateHandler
-										.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS);
-								bundle = new Bundle();
-								bundle.putString("closestCarToIntersection",
-										closestCarToIntersection.getIPAdress());
-								msg.setData(bundle);
-
-								myUpdateHandler.sendMessage(msg);
-
-								application.waitingForLeaderMessage = true;
-
-								// int counter=3; /*wait for 3 seconds or
-								// timeout*/
-								while (application.waitingForLeaderMessage) {
-									Log.d(TAG, "looping");
-
-									Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
-
-								}
+								/*
+								 * application.trafficLightColor =
+								 * VTLApplication.ORANGE;
+								 * 
+								 * msg = myUpdateHandler
+								 * .obtainMessage(VTLApplication
+								 * .VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS);
+								 * bundle = new Bundle();
+								 * bundle.putString("closestCarToIntersection",
+								 * closestCarToIntersection.getIPAdress());
+								 * msg.setData(bundle);
+								 * 
+								 * myUpdateHandler.sendMessage(msg);
+								 * 
+								 * while (application.trafficLightColor ==
+								 * VTLApplication.ORANGE) {
+								 * Thread.sleep(VTLApplication
+								 * .SLEEPTIME_CONFLICTDETECTION); }
+								 * 
+								 * if (application.trafficLightColor ==
+								 * Color.RED) {
+								 * 
+								 * while (application.trafficLightColor ==
+								 * Color.RED) { Thread.sleep(VTLApplication.
+								 * SLEEPTIME_CONFLICTDETECTION); }
+								 * 
+								 * }
+								 */
+								/*
+								 * application.waitingForLeaderMessage = true;
+								 * 
+								 * 
+								 * while (application.waitingForLeaderMessage) {
+								 * Log.d(TAG, "looping");
+								 * 
+								 * Thread.sleep(VTLApplication.
+								 * SLEEPTIME_TRAFFIC_LIGHT);
+								 * 
+								 * }
+								 */
 
 								/*
 								 * if (counter==0) { Log.d(TAG,
@@ -230,15 +206,25 @@ public class VTLLogicService {
 								 * leader if reach here
 								 */
 
-								if (application.trafficLightColor == Color.RED) {
-									// wait until i get a green
-									application.waitingForLeaderMessage = true;
-									while (application.waitingForLeaderMessage) {
-									}
-
-									Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
-
-								}
+								/*
+								 * while
+								 * (application.trafficLightColor!=Color.GREEN)
+								 * {}
+								 * 
+								 * 
+								 * 
+								 * 
+								 * if (application.trafficLightColor ==
+								 * Color.RED) { // wait until i get a green
+								 * application.waitingForLeaderMessage = true;
+								 * while (application.waitingForLeaderMessage) {
+								 * }
+								 * 
+								 * Thread.sleep(VTLApplication.
+								 * SLEEPTIME_TRAFFIC_LIGHT);
+								 * 
+								 * }
+								 */
 
 								/*
 								 * did i pass internsection,, if yes, i should
@@ -248,7 +234,8 @@ public class VTLLogicService {
 
 							} /* code for others ends here */
 
-							application.conflictDetected = false;
+							
+							
 
 						} /* conflict code ends here */
 
@@ -270,7 +257,6 @@ public class VTLLogicService {
 			}
 
 		}
-
 	}
 
 	private ArrayList<CloseCar> closeCars() {
@@ -323,11 +309,7 @@ public class VTLLogicService {
 
 		for (CloseCar closeCar : closeNeighbors) {
 
-			String neighborIntersection;
 			float neighbordistanceFromIntersecion;
-
-			neighborIntersection = application.findJunctionByLaneId(closeCar
-					.getLaneId());
 
 			{
 				neighbordistanceFromIntersecion = getDistance(
@@ -369,7 +351,6 @@ public class VTLLogicService {
 	boolean isConflictingIntersection(ArrayList<CloseCar> closeNeighbors) {
 
 		String neighborIntersection;
-		float distance;
 
 		if (closeNeighbors == null)
 			return false;
@@ -392,6 +373,170 @@ public class VTLLogicService {
 
 	}
 
+	public boolean isConflictingDirection(float angle1, float angle2) {
+		float difference = Math.abs(angle1 - angle2);
+		if (difference == 0 || difference == 180)
+			return false;
+
+		return true;
+
+	}
+
+	public ArrayList<NameValue> getConflictLanes(String laneId, float angle) {
+
+		ArrayList<NameValue> conflictLanes = new ArrayList<NameValue>();
+
+		for (Junction junction : application.map.getJunctions()) {
+			if (junction.getId().equals(laneId)) {
+
+				for (String conflictingLane : junction.getInLanes()) {
+
+					NameValue nameValue = new NameValue();
+					nameValue.setName(conflictingLane);
+					conflictLanes.add(nameValue);
+
+				}
+				/*
+				 * for (String conflictingLane : junction.getOutLanes()) {
+				 * 
+				 * NameValue nameValue = new NameValue();
+				 * nameValue.setName(conflictingLane);
+				 * conflictLanes.add(nameValue);
+				 * 
+				 * }
+				 */
+			}
+
+		}
+
+		for (int i = 0; i < conflictLanes.size(); i++)
+
+		{
+			NameValue nameValue = conflictLanes.get(i);
+			boolean found = false;
+			float angleToCompare = 0;
+			for (Edge edge : application.map.getEdges()) {
+
+				for (Lane lane : edge.getLanes()) {
+
+					if (lane.getId().equals(nameValue.getName())) {
+
+						found = true;
+						angleToCompare = edge.getAngle();
+						if (isConflictingDirection(angleToCompare, angle))
+							nameValue.setValue(true);
+						else
+							nameValue.setValue(false);
+						conflictLanes.set(i, nameValue);
+					}
+
+					if (found)
+						break;
+
+				}
+
+				if (found)
+					break;
+
+			}
+
+		}
+
+		return conflictLanes;
+
+	}
+
+	public void VTLStatusSender(int leaderColor) {
+		Log.i(TAG, "Begin VTLSatusSender method");
+		DatagramSocket socket = null;
+		DatagramPacket outPacket = null;
+		byte[] outBuf;
+		// Keep listening to the InputStream while connected
+
+		try {
+
+			socket = new DatagramSocket();
+			int timer = 10;
+			StringBuilder rawPacket;
+
+			while (timer > 0) {
+
+				rawPacket = new StringBuilder(
+						String.valueOf(VTLApplication.MSG_TYPE_LIGHT_STATUS))
+						.append(VTLApplication.MSG_SEPARATOR)
+						.append(application.time.format("%k:%M:%S").toString())
+						.append(VTLApplication.MSG_SEPARATOR).append(timer);
+				for (NameValue isConflictingLane : getConflictLanes(
+						application.junctionId, application.directionAngle)) {
+
+					if (leaderColor == Color.RED)
+
+					{
+						rawPacket
+								.append(VTLApplication.MSG_SEPARATOR)
+								.append(isConflictingLane.getBooleanValue() ? VTLApplication.MSG_LIGHT_STATUS_GREEN
+										: VTLApplication.MSG_LIGHT_STATUS_RED)
+
+								.append(VTLApplication.MSG_SEPARATOR)
+
+								.append(isConflictingLane.getName());
+					}
+
+					if (leaderColor == Color.GREEN)
+
+					{
+						rawPacket
+								.append(VTLApplication.MSG_SEPARATOR)
+								.append(isConflictingLane.getBooleanValue() ? VTLApplication.MSG_LIGHT_STATUS_RED
+										: VTLApplication.MSG_LIGHT_STATUS_GREEN)
+
+								.append(VTLApplication.MSG_SEPARATOR)
+
+								.append(isConflictingLane.getName());
+					}
+
+				}
+
+				outBuf = rawPacket.toString().getBytes();
+
+				// Send to multicast IP address and port
+				InetAddress address = InetAddress
+						.getByName(application.isBroadCastTX ? VTLApplication.BROADCASTADDRESS
+								: BeaconService.MULTICASTADDRESS);
+				outPacket = new DatagramPacket(outBuf, outBuf.length, address,
+						VTLApplication.PORT);
+				socket.setBroadcast(application.isBroadCastTX);
+				socket.send(outPacket);
+
+				timer--;
+				Thread.sleep(VTLApplication.SLEEPTIME_VTLSTATUS);
+
+				// System.out.println("Server sends : " + msg);
+
+			}
+
+			/*
+			 * socket = null; outPacket = null; outBuf = null;
+			 */
+		} catch (IOException ioe) {
+			Log.i(TAG, ioe.getMessage());
+			socket.close();
+			Thread.currentThread().interrupt();
+		} catch (InterruptedException ie) {
+			// Log.i(TAG, ie.getMessage());
+			Log.i(TAG,
+					"Interrupted VTLStatusSenderThread and also closes its socket");
+			socket.close();
+			Thread.currentThread().interrupt();
+
+		}
+	}
+
+	/*
+	 * public void cancel() { try { socket.close(); } catch (IOException e) {
+	 * Log.e(MainActivity.TAG, "close() of connect socket failed", e); } }
+	 */
+
 	public void start() {
 		runFlagConflictDetection = true;
 		conflictDetectionThread = new ConflictDetectionThread();
@@ -407,76 +552,4 @@ public class VTLLogicService {
 
 	}
 
-	public boolean isConflictingDirection(float angle1, float angle2) {
-		float difference = Math.abs(angle1 - angle2);
-		if (difference == 0 || difference == 180)
-			return false;
-
-		return true;
-
-	}
-
-	private void processRXPacket(String stringMsg, String rxIPAdress) {
-		stringMsg = (new StringBuilder(stringMsg).append(",")
-				.append(rxIPAdress)).toString();
-
-		// Log.i(VTLActivity.TAG, "got Mms"+stringMsg);
-		Message msg = myUpdateHandler
-				.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS);
-
-		myUpdateHandler.sendMessage(msg);
-
-	}
-
-	private class ListenerBroadCastThread extends Thread {
-
-		DatagramSocket socket = null;
-		DatagramPacket inPacket = null;
-		byte[] inBuf = new byte[256];
-
-		public ListenerBroadCastThread() {
-
-		}
-
-		public void run() {
-			Log.i(VTLActivity.TAG, "Begin Listener Thread");
-			// Message m = new Message();
-			// m.what = VTLActivity.MSG_ID;
-			try {
-
-				socket = new DatagramSocket(VTLApplication.PORT_2);
-
-				while (runFlagListener) {
-					inPacket = new DatagramPacket(inBuf, inBuf.length);
-					socket.receive(inPacket);
-					String rxIPAdress = inPacket.getAddress().toString()
-							.substring(1);
-					if (application.IPAddress.equals(rxIPAdress))
-						continue;
-
-					String stringMsg = new String(inBuf, 0,
-							inPacket.getLength());
-					processRXPacket(stringMsg, rxIPAdress);
-
-					try {
-						Thread.sleep(VTLApplication.SLEEPTIME_RECEIVE);
-					} catch (InterruptedException ie) {
-						Log.i(VTLActivity.TAG, ie.getMessage());
-						// Thread.currentThread().interrupt();
-
-					}
-
-				}
-
-				inPacket = null;
-				socket = null;
-				inBuf = new byte[256];
-			} catch (IOException ioe) {
-				Log.e(TAG, ioe.getMessage());
-				runFlagListener = false;
-				// Thread.currentThread().interrupt();
-			}
-
-		}
-	}
 }

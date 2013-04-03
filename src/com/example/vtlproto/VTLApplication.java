@@ -39,9 +39,7 @@ import android.util.Log;
 
 public class VTLApplication extends Application {
 
-	public enum Direction {
-		N, S, W, E
-	}
+	
 
 	public final static boolean[][] ROAD_MATRIX_3 = {
 			{ false, false, false, true, true, false, false, false },
@@ -113,8 +111,9 @@ public class VTLApplication extends Application {
 	public final static int PORT_2 = 8889;
 	public boolean isBroadCastTX;
 	public static final int SLEEPTIME_SEND = 1000;
-	public static final int SLEEPTIME_RECEIVE = 1000;
-	public static final int SLEEPTIME_TRAFFIC_LIGHT = 10000;
+	public static final int SLEEPTIME_RECEIVE = 250;
+	public final static int SLEEPTIME_VTLSTATUS = 1000;
+
 
 	public static final int SLEEPTIME_CONFLICTDETECTION = 1000;
 	public static String BROADCASTADDRESS;
@@ -143,7 +142,6 @@ public class VTLApplication extends Application {
 	public String IPAddress;
 	public int trafficLightColor;
 	public Point junctionPoint;
-	public Direction direction;
 	public HashMap<String, BeaconPacket> hashMapNeighbors;
 	public BeaconService beaconService;
 	public boolean beaconServiceStatus = false;
@@ -152,7 +150,7 @@ public class VTLApplication extends Application {
 	public boolean waitingForLeaderMessage = false;
 	public String junctionId, laneId;
 	public float directionAngle;
-	private Map map;
+	public Map map;
 
 	public float getCurrentPositionX() {
 		return currentPositionX;
@@ -200,10 +198,7 @@ public class VTLApplication extends Application {
 				&& (ROAD_MATRIX[(int) (SIZEY - 1 - newPositionY)][(int) currentPositionX])) {
 			Log.d(TAG, "j : " + currentPositionX + " i: "
 					+ (SIZEY - 1 - newPositionY));
-			if (newPositionY > currentPositionY)
-				direction = Direction.N;
-			else
-				direction = Direction.S;
+			
 			currentPositionY = newPositionY;
 
 		}
@@ -216,10 +211,7 @@ public class VTLApplication extends Application {
 			Log.d(TAG, "j : " + newPositionX + " i: "
 					+ (SIZEY - 1 - currentPositionY));
 
-			if (newPositionX > currentPositionX)
-				direction = Direction.E;
-			else
-				direction = Direction.W;
+			
 
 			currentPositionX = newPositionX;
 		}
@@ -240,8 +232,7 @@ public class VTLApplication extends Application {
 		String s = readTextFile(inputStream);
 		map = new Map(s);
 		setBooleanMap(map);
-		direction = Direction.N;
-		isBroadCastTX = true;
+		isBroadCastTX = false;
 		currentPositionX = SIZEX / 2;
 		currentPositionY = 0;
 		trafficLightColor = Color.WHITE;
@@ -494,7 +485,10 @@ public class VTLApplication extends Application {
 		}
 
 		
+		angle=360-angle+90;
 		
+		if (angle>=360)
+		angle=angle-360;
 		return angle;
 	}
 
@@ -502,7 +496,7 @@ public class VTLApplication extends Application {
 		directionAngle = getAngle(oldPoint, newPoint);
 		laneId = findLane(map, newPoint.getX(), newPoint.getY());
 		setJunctionAndPointByLaneId(laneId);
-		//Log.i(TAG, "Direction Angle:"+directionAngle);
+		Log.i(TAG, "Direction Angle:"+directionAngle);
 
 	}
 

@@ -1,107 +1,74 @@
 <map>
 
-    <edge
-        id=":j_0_0"
-        function="internal" >
+    <edge id=":j_0_0" angle="0">
 
         <lane
             id=":j_0_0_0"
-            index="0"
             length="4.00"
-            shape="0,5 4,5"
-            speed="13.80" />
+            shape="0,5 4,5" />
     </edge>
 
-    <edge
-        id=":j_0_1"
-        function="internal" >
+    <edge id=":j_0_1" angle="180">
 
         <lane
             id=":j_0_1_0"
-            index="0"
             length="4.00"
-            shape="4,6 0,6"
-            speed="13.80" />
+            shape="4,6 0,6" />
     </edge>
 
-    <edge
-        id=":j_0_2"
-        function="internal" >
+    <edge id=":j_0_2" angle="180">
 
         <lane
             id=":j_0_2_0"
-            index="0"
             length="4.00"
-            shape="11,6 7,6"
-            speed="13.80" />
+            shape="11,6 7,6" />
     </edge>
 
-    <edge
-        id=":j_0_3"
-        function="internal" >
+    <edge id=":j_0_3" angle="0">
 
         <lane
             id=":j_0_3_0"
-            index="0"
             length="4.00"
-            shape="7,5 11,5"
-            speed="13.80" />
+            shape="7,5 11,5" />
     </edge>
 
-    <edge
-        id=":j_0_4"
-        function="internal" >
+    <edge id=":j_0_4" angle="270">
 
         <lane
             id=":j_0_4_0"
-            index="0"
             length="4.00"
-            shape="5,11 5,7"
-            speed="13.80" />
+            shape="5,11 5,7" />
     </edge>
 
-    <edge
-        id=":j_0_5"
-        function="internal" >
+    <edge id=":j_0_5" angle="90" >
 
         <lane
             id=":j_0_5_0"
-            index="0"
             length="4.00"
-            shape="6,7 6,11"
-            speed="13.80" />
+            shape="6,7 6,11" />
     </edge>
 
-    <edge
-        id=":j_0_6"
-        function="internal" >
+    <edge id=":j_0_6" angle="90">
 
         <lane
             id=":j_0_4_0"
-            index="0"
             length="4.00"
-            shape="6,0 6,4"
-            speed="13.80" />
+            shape="6,0 6,4" />
     </edge>
 
-    <edge
-        id=":j_0_7"
-        function="internal" >
+    <edge id=":j_0_7" angle="270">
 
         <lane
             id=":j_0_5_0"
-            index="0"
             length="4.00"
-            shape="5,4 5,0"
-            speed="13.80" />
+            shape="5,4 5,0" />
     </edge>
 
     <junction
         id="j_2"
         inLanes=":j_0_0_0:j_0_2_0:j_0_4_0:j_0_6_0"
         outLanes=":j_0_1_0:j_0_3_0:j_0_5_0:j_0_7_0"
-        shape="5,5 6,5 6,6 5,6"
-        type="traffic_light" >
+        shape="5,5 6,5 6,6 5,6" >
     </junction>
 
 </map>

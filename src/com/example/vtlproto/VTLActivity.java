@@ -3,6 +3,7 @@ package com.example.vtlproto;
 import java.util.HashMap;
 
 import com.example.vtlproto.model.BeaconPacket;
+import com.example.vtlproto.model.NameValue;
 import com.example.vtlproto.model.TrafficLightPacket;
 
 import android.app.Activity;
@@ -262,32 +263,50 @@ public class VTLActivity extends Activity {
 					break;
 
 				case VTLApplication.MSG_TYPE_LIGHT_STATUS:
-
-					if (application.conflictDetected && application.waitingForLeaderMessage)
-
+					if (true)
+				//	if (application.conflictDetected && application.waitingForLeaderMessage)
+//Log.i(TAG,"got a S packet:"+text);
 					{
 						TrafficLightPacket trafficLightPacket = new TrafficLightPacket(
 								text);
 
-						char status = trafficLightPacket.getStatus();
-						switch (status) {
-						case VTLApplication.MSG_LIGHT_STATUS_GREEN:
-							application.trafficLightColor = Color.GREEN;
-							trafficLight
-									.setBackgroundColor(application.trafficLightColor);
-							application.waitingForLeaderMessage = false;
-							Log.d(TAG, "got green light message from leader");
-							break;
-						case VTLApplication.MSG_LIGHT_STATUS_RED:
-					
-							
-							application.trafficLightColor = Color.RED;
-							trafficLight
-									.setBackgroundColor(application.trafficLightColor);
-							application.waitingForLeaderMessage = false;
+						/*Log.i(TAG,"wih timer"+trafficLightPacket.getTimer());
+						Log.i(TAG,"laneid0:"+trafficLightPacket.getStatusLaneIds().get(0).getName());
+						Log.i(TAG,"status0:"+trafficLightPacket.getStatusLaneIds().get(0).getCharValue());
+*/
 
-							break;
+						for (NameValue statusLaneId:trafficLightPacket.getStatusLaneIds())
+						{
+							if (statusLaneId.getName().equals(application.laneId))
+							{
+								
+								char status = statusLaneId.getCharValue(); 
+										switch (status) {
+										case VTLApplication.MSG_LIGHT_STATUS_GREEN:
+											application.trafficLightColor = Color.GREEN;
+											trafficLight
+													.setBackgroundColor(application.trafficLightColor);
+											//application.waitingForLeaderMessage = false;
+											//Log.d(TAG, "got green light message from leader");
+											break;
+										case VTLApplication.MSG_LIGHT_STATUS_RED:
+									
+											
+											application.trafficLightColor = Color.RED;
+											trafficLight
+													.setBackgroundColor(application.trafficLightColor);
+											
+											//Log.d(TAG, "got red light message from leader");
+
+											//application.waitingForLeaderMessage = false;
+
+											break;
+										}
+								
+								break;
+							}
 						}
+						
 					}
 
 					break;

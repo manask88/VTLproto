@@ -36,6 +36,7 @@ public class Map {
 			Element edgeNodeList = (Element) edgesNodeList.item(i);
 			// Log.i(TAG, XMLfunctions.getAttribute(edgeNodeList, "id"));
 			edge.setId(XMLfunctions.getAttribute(edgeNodeList, "id"));
+			edge.setAngle(Float.valueOf(XMLfunctions.getAttribute(edgeNodeList, "angle")));
 			NodeList lanesNodeList = edgeNodeList.getElementsByTagName("lane");
 
 			ArrayList<Lane> lanes = new ArrayList<Lane>();
@@ -127,7 +128,8 @@ public class Map {
 
 			ArrayList<String> inLanes = new ArrayList<String>();
 
-			for (int k = 0; k < inLanesStringArray.length; k++) {
+			/*since k=1 because i dont wanna take the first :, as i am breaking based on : as separator*/
+			for (int k = 1; k < inLanesStringArray.length; k++) {
 
 				String intLaneString = ":" + inLanesStringArray[k];
 
@@ -146,7 +148,9 @@ public class Map {
 
 			ArrayList<String> outLanes = new ArrayList<String>();
 
-			for (int k = 0; k < outLanesStringArray.length; k++) {
+			/*since k=1 because i dont wanna take the first :, as i am breaking based on : as separator*/
+
+			for (int k = 1; k < outLanesStringArray.length; k++) {
 
 				String outLaneString = ":" + outLanesStringArray[k];
 
@@ -157,6 +161,8 @@ public class Map {
 				junction.setOutLanes(outLanes);
 			/* end parse ids in outLanes */
 
+		
+			
 			if (junction.getShape() != null
 					&& (junction.getInLanes() != null || junction.getOutLanes() != null))
 				junctions.add(junction);
