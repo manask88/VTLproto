@@ -101,7 +101,10 @@ public class VTLLogicService {
 							/* code for the leader */
 
 							if (closestCarToIntersection.getIPAdress().equals(
-									application.IPAddress)) {
+									application.IPAddress))
+								application.amIleader = true;
+
+							if (application.amIleader) {
 
 								Log.i(TAG,
 										"I am the leader, so i send a broadcast packet");
@@ -115,7 +118,7 @@ public class VTLLogicService {
 								msg.setData(bundle);
 								myUpdateHandler.sendMessage(msg);
 								VTLStatusSender(Color.RED);
-								//Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
+								// Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
 
 								Log.i(TAG,
 										"I am the leader, so i send a broadcast packet");
@@ -130,20 +133,33 @@ public class VTLLogicService {
 								myUpdateHandler.sendMessage(msg);
 								VTLStatusSender(Color.GREEN);
 
-								 msg = myUpdateHandler
-											.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS);
-									myUpdateHandler.sendMessage(msg);
-									application.trafficLightColor = Color.WHITE;
-									application.conflictDetected = false;
-								//Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
+								msg = myUpdateHandler
+										.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS);
+								myUpdateHandler.sendMessage(msg);
+								application.trafficLightColor = Color.WHITE;
+								application.conflictDetected = false;
+								// Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
 
 								/* code for leader ends here */
-
+								application.amIleader = false;
 								/* code for others */
 							} else {
 
 								Log.i(TAG,
 										"I am not the leader, so i am waiting for the leader");
+
+								application.trafficLightColor = VTLApplication.ORANGE;
+
+								msg = myUpdateHandler
+										.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS);
+								bundle = new Bundle();
+								msg.setData(bundle);
+
+								while (!application.didIgetLeaderPacket) {
+
+									Thread.sleep(VTLApplication.SLEEPTIME_CONFLICTDETECTION);
+
+								}
 
 								/*
 								 * application.trafficLightColor =
@@ -234,9 +250,6 @@ public class VTLLogicService {
 
 							} /* code for others ends here */
 
-							
-							
-
 						} /* conflict code ends here */
 
 					} else {
@@ -255,6 +268,14 @@ public class VTLLogicService {
 
 				Thread.currentThread().interrupt();
 			}
+			
+			catch (Exception e) {
+				Log.i(TAG, e.getMessage());
+				runFlagConflictDetection = false;
+
+				Thread.currentThread().interrupt();
+			}
+
 
 		}
 	}
@@ -330,7 +351,30 @@ public class VTLLogicService {
 							.setIPAdress(closeCar.getIPAdress());
 					closestCarToIntersection
 							.setDistance(neighbordistanceFromIntersecion);
+
 				}
+
+				/*in case there is a tie in distances, i choose the one with the lowest ip value*/
+				if (neighbordistanceFromIntersecion == closestCarToIntersection
+						.getDistance()) {
+
+					long closeCarIP = Long.valueOf(closeCar.getIPAdress()
+							.replace(".", ""));
+					long closestCarToIntersectionIP = Long
+							.valueOf(closestCarToIntersection.getIPAdress()
+									.replace(".", ""));
+					if (closeCarIP < closestCarToIntersectionIP)
+
+					{
+						closestCarToIntersection.setIPAdress(closeCar
+								.getIPAdress());
+						closestCarToIntersection
+								.setDistance(neighbordistanceFromIntersecion);
+
+					}
+
+				}
+
 				Log.i(TAG, "Car with IP " + closeCar.getIPAdress()
 						+ " has a distance to his intersectionof value: "
 						+ neighbordistanceFromIntersecion);
@@ -519,12 +563,12 @@ public class VTLLogicService {
 			 * socket = null; outPacket = null; outBuf = null;
 			 */
 		} catch (IOException ioe) {
-			Log.i(TAG, ioe.getMessage());
+			Log.e(TAG, ioe.getMessage());
 			socket.close();
 			Thread.currentThread().interrupt();
 		} catch (InterruptedException ie) {
 			// Log.i(TAG, ie.getMessage());
-			Log.i(TAG,
+			Log.e(TAG,
 					"Interrupted VTLStatusSenderThread and also closes its socket");
 			socket.close();
 			Thread.currentThread().interrupt();

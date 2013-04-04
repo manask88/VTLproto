@@ -146,7 +146,8 @@ public class VTLApplication extends Application {
 	public BeaconService beaconService;
 	public boolean beaconServiceStatus = false;
 	public boolean conflictDetected = false;
-
+	public boolean amIleader=false;
+	public boolean didIgetLeaderPacket=false;
 	public boolean waitingForLeaderMessage = false;
 	public String junctionId, laneId;
 	public float directionAngle;
@@ -232,7 +233,7 @@ public class VTLApplication extends Application {
 		String s = readTextFile(inputStream);
 		map = new Map(s);
 		setBooleanMap(map);
-		isBroadCastTX = false;
+		isBroadCastTX = true;
 		currentPositionX = SIZEX / 2;
 		currentPositionY = 0;
 		trafficLightColor = Color.WHITE;

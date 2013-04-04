@@ -90,7 +90,7 @@ public class BeaconService {
 				 * inPacket = null; socket = null; inBuf = new byte[256];
 				 */
 			} catch (IOException ioe) {
-				Log.i(TAG, ioe.getMessage());
+				Log.e(TAG, ioe.getMessage());
 				Thread.currentThread().interrupt();
 				runFlagListener = false;
 				//socket.close();
@@ -99,7 +99,7 @@ public class BeaconService {
 				Thread.currentThread().interrupt();
 				runFlagListener = false;
 				socket.close();
-				Log.i(TAG,
+				Log.e(TAG,
 						"Interrupted ListenerMulticastThread and also closes its socket");
 
 			}
@@ -162,7 +162,7 @@ public class BeaconService {
 				}
 			} catch (IOException ioe) {
 				System.out.println(ioe);
-				Log.i(TAG, ioe.getMessage());
+				Log.e(TAG, ioe.getMessage());
 				runFlagListener = false;
 				socket.close();
 				Thread.currentThread().interrupt();
@@ -171,7 +171,7 @@ public class BeaconService {
 				Thread.currentThread().interrupt();
 				runFlagListener = false;
 				socket.close();
-				Log.i(TAG,
+				Log.e(TAG,
 						"Interrupted ListenerMulticastThread and also closes its socket");
 			}
 		}
@@ -211,7 +211,7 @@ public class BeaconService {
 							.append(VTLApplication.MSG_SEPARATOR)
 							.append(application.laneId)
 							.append(VTLApplication.MSG_SEPARATOR)
-							.append("0")
+							.append(application.amIleader?1:0)
 
 							.toString();
 
@@ -235,13 +235,13 @@ public class BeaconService {
 				 * socket = null; outPacket = null; outBuf = null;
 				 */
 			} catch (IOException ioe) {
-				Log.i(TAG, ioe.getMessage());
+				Log.e(TAG, ioe.getMessage());
 				runFlagBeacon = false;
 				socket.close();
 				Thread.currentThread().interrupt();
 			} catch (InterruptedException ie) {
 				// Log.i(TAG, ie.getMessage());
-				Log.i(TAG,
+				Log.e(TAG,
 						"Interrupted SenderThread and also closes its socket");
 				runFlagBeacon = false;
 				socket.close();
@@ -275,7 +275,7 @@ public class BeaconService {
 			senderThread.start();
 			
 		} else {
-			Log.i(TAG,
+			Log.e(TAG,
 					"trying to start  BeaconServiceThreads, which has already been started");
 
 		}
@@ -298,7 +298,7 @@ public class BeaconService {
 			senderThread.interrupt();
 			senderThread = null;
 		} else {
-			Log.i(TAG,
+			Log.e(TAG,
 					"trying to stop BeaconServiceThreads ,but it has already been stopped.");
 		}
 	}
