@@ -111,7 +111,7 @@ public class VTLApplication extends Application {
 	public final static int PORT_2 = 8889;
 	public boolean isBroadCastTX;
 	public static final int SLEEPTIME_SEND = 1000;
-	public static final int SLEEPTIME_RECEIVE = 250;
+	public static final int SLEEPTIME_RECEIVE = 1000;
 	public final static int SLEEPTIME_VTLSTATUS = 1000;
 
 
