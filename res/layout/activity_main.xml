@@ -79,10 +79,27 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Closest Car To Intersection: " />
+                android:text="VTLLeader: " />
 
             <TextView
                 android:id="@+id/tvClosestCarToIntersection"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cluster Leader: " />
+
+            <TextView
+                android:id="@+id/tvClusterLeaader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="" />
@@ -166,37 +183,34 @@
                 android:layout_height="wrap_content"
                 android:text="0" />
         </LinearLayout>
-
-      
     </LinearLayout>
 
-    
-    
-    
-      <LinearLayout android:layout_above="@+id/linearLayoutBottom"
-            android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/linearLayoutBottom"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/buttonDummy"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal" >
+            android:layout_weight=".33" />
 
-            <Button
-                android:id="@+id/buttonDummy"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight=".33" />
+        <Button
+            android:id="@+id/buttonUp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight=".33"
+            android:text="Up" />
 
-            <Button
-                android:id="@+id/buttonUp"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight=".33"
-                android:text="Up" />
+        <Button
+            android:id="@+id/buttonDummy"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight=".33" />
+    </LinearLayout>
 
-            <Button
-                android:id="@+id/buttonDummy"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight=".33" />
-        </LinearLayout>
     <LinearLayout
         android:id="@+id/linearLayoutBottom"
         android:layout_width="match_parent"

@@ -20,19 +20,19 @@ import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 
 
-public class SendUnicastService extends IntentService {
+public class SendUnicastAckPacketService extends IntentService {
 
-	private static final String TAG = SendUnicastService.class.getSimpleName();
+	private static final String TAG = SendUnicastAckPacketService.class.getSimpleName();
 	public static final String EXTRAS_RAW_PACKET = "raw_packet";
 	public static final String EXTRAS_DST_IP = "dst_ip";
 	private VTLApplication application;
 	private String rawPacket;
 
-	public SendUnicastService(String name) {
+	public SendUnicastAckPacketService(String name) {
 		super(name);
 	}
 
-	public SendUnicastService() {
+	public SendUnicastAckPacketService() {
 		super("SendUnicastService");
 	}
 
@@ -47,7 +47,6 @@ public class SendUnicastService extends IntentService {
 		Log.d(TAG, "onHandleItent");
 		application = (VTLApplication) getApplication();
 		IPAdddress = intent.getExtras().getString(EXTRAS_DST_IP);
-		rawPacket = intent.getExtras().getString(EXTRAS_RAW_PACKET);
 		DatagramSocket socket = null;
 		DatagramPacket outPacket = null;
 		byte[] outBuf;
@@ -56,12 +55,17 @@ public class SendUnicastService extends IntentService {
 		try {
 			socket = new DatagramSocket();
 
+			
+			rawPacket = new StringBuilder(
+					String.valueOf(VTLApplication.MSG_TYPE_LEADER_ACK))
+					.append(VTLApplication.MSG_SEPARATOR)
+					.append(application.time.format("%k:%M:%S").toString()).toString();
+
+			
 			outBuf = rawPacket.getBytes();
 
-			// Send to multicast IP address and port
 			InetAddress address;
-			address = InetAddress
-					.getByName(IPAdddress);
+			address = InetAddress.getByName(IPAdddress);
 			
 			outPacket = new DatagramPacket(outBuf, outBuf.length, address,
 					VTLApplication.PORT);

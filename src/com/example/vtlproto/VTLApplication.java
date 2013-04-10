@@ -39,8 +39,6 @@ import android.util.Log;
 
 public class VTLApplication extends Application {
 
-	
-
 	public final static boolean[][] ROAD_MATRIX_3 = {
 			{ false, false, false, true, true, false, false, false },
 			{ false, false, false, true, true, false, false, false },
@@ -110,10 +108,9 @@ public class VTLApplication extends Application {
 	public final static int PORT = 8888;
 	public final static int PORT_2 = 8889;
 	public boolean isBroadCastTX;
-	public static final int SLEEPTIME_SEND = 100;
+	public static final int SLEEPTIME_SEND = 1000;
 	public static final int SLEEPTIME_RECEIVE = 100;
 	public final static int SLEEPTIME_VTLSTATUS = 1000;
-
 
 	public static final int SLEEPTIME_CONFLICTDETECTION = 1000;
 	public static String BROADCASTADDRESS;
@@ -127,14 +124,19 @@ public class VTLApplication extends Application {
 			Color.YELLOW };
 
 	public final static int SLEEPTIME_TIME = 1000;
-	public final static int VTLLOGICSERVICE_HANDLER_RX_CONFLICT_DETECTED = 2;
 	public final static int BEACONSERVICE_HANDLER_RX_TEXT = 1;
+
+	public final static int VTLLOGICSERVICE_HANDLER_RX_CONFLICT_DETECTED = 2;
 	public final static int VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS = 3;
 	public final static int VTLLOGICSERVICE_HANDLER_NEW_DISTANCE = 4;
+	public static final int VTLLOGICSERVICE_HANDLER_NEW_CLUSTER_LEADER = 5;
 
 	public final static char MSG_SEPARATOR = ',';
 	public final static char MSG_TYPE_BEACON = 'B';
 	public final static char MSG_TYPE_LIGHT_STATUS = 'S';
+	public final static char MSG_TYPE_LEADER_REQ = 'R';
+	public final static char MSG_TYPE_LEADER_ACK = 'A';
+
 	public final static char MSG_LIGHT_STATUS_GREEN = 'G';
 	public final static char MSG_LIGHT_STATUS_RED = 'R';
 
@@ -144,10 +146,13 @@ public class VTLApplication extends Application {
 	public Point junctionPoint;
 	public HashMap<String, BeaconPacket> hashMapNeighbors;
 	public BeaconService beaconService;
+	public CloseCar clusterLeader = null;
 	public boolean beaconServiceStatus = false;
 	public boolean conflictDetected = false;
-	public boolean amIleader=false;
-	public boolean didIgetLeaderPacket=false;
+	public boolean amIleader = false;
+	public boolean didIgetLeaderPacket = false;
+	public int timeLeftForCurrentStatus = 0;
+
 	public boolean waitingForLeaderMessage = false;
 	public String junctionId, laneId;
 	public float directionAngle;
@@ -162,22 +167,22 @@ public class VTLApplication extends Application {
 	}
 
 	public float incCurrentX() {
-		setCurrentPosition(new Point(currentPositionX + 1,currentPositionY));
-	return currentPositionX;
+		setCurrentPosition(new Point(currentPositionX + 1, currentPositionY));
+		return currentPositionX;
 	}
 
 	public float incCurrentY() {
-		setCurrentPosition(new Point(currentPositionX ,currentPositionY+1));
+		setCurrentPosition(new Point(currentPositionX, currentPositionY + 1));
 		return currentPositionY;
 	}
 
 	public float decCurrentX() {
-		setCurrentPosition(new Point(currentPositionX - 1,currentPositionY));
+		setCurrentPosition(new Point(currentPositionX - 1, currentPositionY));
 		return currentPositionX;
 	}
 
 	public float decCurrentY() {
-		setCurrentPosition(new Point(currentPositionX ,currentPositionY-1));
+		setCurrentPosition(new Point(currentPositionX, currentPositionY - 1));
 		return currentPositionY;
 	}
 
@@ -199,7 +204,7 @@ public class VTLApplication extends Application {
 				&& (ROAD_MATRIX[(int) (SIZEY - 1 - newPositionY)][(int) currentPositionX])) {
 			Log.d(TAG, "j : " + currentPositionX + " i: "
 					+ (SIZEY - 1 - newPositionY));
-			
+
 			currentPositionY = newPositionY;
 
 		}
@@ -211,8 +216,6 @@ public class VTLApplication extends Application {
 				&& (ROAD_MATRIX[(int) (SIZEY - 1 - currentPositionY)][(int) newPositionX])) {
 			Log.d(TAG, "j : " + newPositionX + " i: "
 					+ (SIZEY - 1 - currentPositionY));
-
-			
 
 			currentPositionX = newPositionX;
 		}
@@ -269,9 +272,15 @@ public class VTLApplication extends Application {
 			// BROADCASTADDRESS = "10.20.1.255";
 		} else {
 			Log.e(TAG, "You are NOT connected to WIFI");
-			IPAddress = getIPAddress(true);
+
+		}
+
+		if (getWiFIDirectIPAddress(true) != null) {
+
+			IPAddress =getWiFIDirectIPAddress(true);
 			/* gets ip in case its using wifi direct */
 			BROADCASTADDRESS = "192.168.49.255";
+
 		}
 
 	}
@@ -282,7 +291,7 @@ public class VTLApplication extends Application {
 		Log.i(TAG, "onTerminated");
 	}
 
-	public static String getIPAddress(boolean useIPv4) {
+	public static String getWiFIDirectIPAddress(boolean useIPv4) {
 		try {
 			List<NetworkInterface> interfaces = Collections
 					.list(NetworkInterface.getNetworkInterfaces());
@@ -319,7 +328,7 @@ public class VTLApplication extends Application {
 			}
 		} catch (Exception ex) {
 		} // for now eat exceptions return "";
-		return "";
+		return null;
 	}
 
 	public static float getIfromY(float y) {
@@ -357,8 +366,9 @@ public class VTLApplication extends Application {
 				Point origin = lane.getShape().get(0);
 				Point end = lane.getShape().get(1);
 
-				//Log.i(TAG, "origin:x:" + origin.getX() + ",y:" + origin.getY());
-				//Log.i(TAG, "end:x:" + end.getX() + ",y:" + end.getY());
+				// Log.i(TAG, "origin:x:" + origin.getX() + ",y:" +
+				// origin.getY());
+				// Log.i(TAG, "end:x:" + end.getX() + ",y:" + end.getY());
 
 				float distanceX = end.getX() - origin.getX();
 				float distanceY = end.getY() - origin.getY();
@@ -376,8 +386,8 @@ public class VTLApplication extends Application {
 						y = origin.getY() + i * distanceY / length;
 					else
 						y = end.getY() + i * -distanceY / length;
-					//Log.i(TAG, "trying to access ceel x:" + x + ",y" + y);
-					
+					// Log.i(TAG, "trying to access ceel x:" + x + ",y" + y);
+
 					ROAD_MATRIX[(int) (x)][(int) getIfromY(y)] = true;
 
 				}
@@ -408,7 +418,7 @@ public class VTLApplication extends Application {
 				if (origin.getX() <= x && x <= end.getX() && origin.getY() <= y
 						&& y <= end.getY())
 					return lane.getId();
-				
+
 				if (end.getX() <= x && x <= origin.getX() && end.getY() <= y
 						&& y <= origin.getY())
 					return lane.getId();
@@ -445,12 +455,9 @@ public class VTLApplication extends Application {
 		for (Junction junction : map.getJunctions()) {
 			for (String laneIdToCompare : junction.getInLanes()) {
 
-				
-				
 				if (laneIdToCompare.equals(laneId)) {
 
-					
-					junctionId=junction.getId();
+					junctionId = junction.getId();
 					for (Point junctionPointToAdd : junction.getShape()) {
 
 						junctionPoint.setX(junctionPointToAdd.getX()
@@ -477,19 +484,20 @@ public class VTLApplication extends Application {
 	public float getAngle(Point oldPoint, Point newPoint) {
 		float angle = (float) Math.toDegrees(Math.atan2(newPoint.getX()
 				- oldPoint.getX(), newPoint.getY() - oldPoint.getY()));
-		
-		/*float angle = (float) Math.toDegrees(Math.atan2(oldPoint.getX()
-				- newPoint.getX(), oldPoint.getY() - newPoint.getY()));*/
+
+		/*
+		 * float angle = (float) Math.toDegrees(Math.atan2(oldPoint.getX() -
+		 * newPoint.getX(), oldPoint.getY() - newPoint.getY()));
+		 */
 
 		if (angle < 0) {
 			angle += 360;
 		}
 
-		
-		angle=360-angle+90;
-		
-		if (angle>=360)
-		angle=angle-360;
+		angle = 360 - angle + 90;
+
+		if (angle >= 360)
+			angle = angle - 360;
 		return angle;
 	}
 
@@ -497,7 +505,7 @@ public class VTLApplication extends Application {
 		directionAngle = getAngle(oldPoint, newPoint);
 		laneId = findLane(map, newPoint.getX(), newPoint.getY());
 		setJunctionAndPointByLaneId(laneId);
-		Log.i(TAG, "Direction Angle:"+directionAngle);
+		Log.i(TAG, "Direction Angle:" + directionAngle);
 
 	}
 

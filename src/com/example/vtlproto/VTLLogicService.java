@@ -29,6 +29,7 @@ public class VTLLogicService {
 
 	private boolean runFlagConflictDetection = false;
 	private CloseCar closestCarToIntersection;
+
 	private final Handler myUpdateHandler;
 	private VTLApplication application;
 	Message msg;
@@ -70,6 +71,9 @@ public class VTLLogicService {
 					if (application.junctionId != null) {
 
 						ArrayList<CloseCar> closeCars = closeCars();
+
+						application.clusterLeader = getClusterLeader(closeCars);
+
 						if (application.junctionId != null
 								&& isConflictingIntersection(closeCars)) {
 
@@ -87,7 +91,7 @@ public class VTLLogicService {
 							closestCarToIntersection
 									.setIPAdress(application.IPAddress);
 
-							closestCarToIntersection(closeCars);
+							getVTLLeader(closeCars);
 
 							Message msg = myUpdateHandler
 									.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_RX_CONFLICT_DETECTED);
@@ -109,6 +113,8 @@ public class VTLLogicService {
 
 								Log.i(TAG,
 										"I am the leader, so i send a broadcast packet");
+
+								VTLLeaderPacketSender();
 
 								application.trafficLightColor = Color.RED;
 								msg = myUpdateHandler
@@ -156,11 +162,18 @@ public class VTLLogicService {
 								bundle = new Bundle();
 								msg.setData(bundle);
 
-								while (!application.didIgetLeaderPacket) {
+								while (application.timeLeftForCurrentStatus > 0) {
 
-									Thread.sleep(VTLApplication.SLEEPTIME_CONFLICTDETECTION);
-
+									Thread.sleep(VTLApplication.SLEEPTIME_VTLSTATUS);
 								}
+								/*
+								 * while (!application.didIgetLeaderPacket) {
+								 * 
+								 * Thread.sleep(VTLApplication.
+								 * SLEEPTIME_CONFLICTDETECTION);
+								 * 
+								 * }
+								 */
 
 								/*
 								 * application.trafficLightColor =
@@ -328,7 +341,7 @@ public class VTLLogicService {
 		return (float) Math.sqrt(sqrX + sqrY);
 	}
 
-	void closestCarToIntersection(ArrayList<CloseCar> closeNeighbors) {
+	void getVTLLeader(ArrayList<CloseCar> closeNeighbors) {
 
 		for (CloseCar closeCar : closeNeighbors) {
 
@@ -395,6 +408,92 @@ public class VTLLogicService {
 			}
 		}
 
+	}
+
+	CloseCar getClusterLeader(ArrayList<CloseCar> closeNeighbors) {
+
+		if (application.junctionPoint != null && closeNeighbors != null
+				&& closeNeighbors.size() > 0) {
+			CloseCar clusterLeader = new CloseCar();
+			clusterLeader.setDistance(getDistance(
+					application.getCurrentPositionX(),
+					application.junctionPoint.getX(),
+					application.getCurrentPositionY(),
+					application.junctionPoint.getY()));
+
+			clusterLeader.setIPAdress(application.IPAddress);
+
+			for (CloseCar closeCar : closeNeighbors) {
+
+				if (closeCar.getLaneId().equals(application.laneId)) {
+					float neighbordistanceFromIntersecion;
+
+					{
+						neighbordistanceFromIntersecion = getDistance(
+								application.junctionPoint.getX(),
+								application.junctionPoint.getY(),
+								closeCar.getX(), closeCar.getY());
+
+						if (neighbordistanceFromIntersecion < clusterLeader
+								.getDistance()) {
+							clusterLeader.setIPAdress(closeCar.getIPAdress());
+							clusterLeader
+									.setDistance(neighbordistanceFromIntersecion);
+
+						}
+
+						/*
+						 * in case there is a tie in distances, i choose the one
+						 * with the lowest ip value
+						 */
+						if (neighbordistanceFromIntersecion == clusterLeader
+								.getDistance()) {
+
+							long closeCarIP = Long.valueOf(closeCar
+									.getIPAdress().replace(".", ""));
+							long closestCarToIntersectionIP = Long
+									.valueOf(clusterLeader.getIPAdress()
+											.replace(".", ""));
+							if (closeCarIP < closestCarToIntersectionIP)
+
+							{
+								clusterLeader.setIPAdress(closeCar
+										.getIPAdress());
+								clusterLeader
+										.setDistance(neighbordistanceFromIntersecion);
+
+							}
+
+						}
+
+						Log.i(TAG,
+								"Car with IP "
+										+ closeCar.getIPAdress()
+										+ " has a distance to his intersectionof value: "
+										+ neighbordistanceFromIntersecion);
+						Log.i(TAG,
+								"My IP "
+										+ application.IPAddress
+										+ " has a distance to my intersectionof value: "
+										+ getDistance(application
+												.getCurrentPositionX(),
+												application
+														.getCurrentPositionY(),
+												application.junctionPoint
+														.getX(),
+												application.junctionPoint
+														.getY()));
+					}
+				}
+			}
+
+			myUpdateHandler.obtainMessage(
+					VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_CLUSTER_LEADER,
+					clusterLeader.getIPAdress()).sendToTarget();
+
+			return clusterLeader;
+		} else
+			return null;
 	}
 
 	boolean isConflictingIntersection(ArrayList<CloseCar> closeNeighbors) {
@@ -493,6 +592,52 @@ public class VTLLogicService {
 
 		return conflictLanes;
 
+	}
+
+	public void VTLLeaderPacketSender() {
+		Log.i(TAG, "Begin VTLLeaderPacketSEnder method");
+		DatagramSocket socket = null;
+		DatagramPacket outPacket = null;
+		byte[] outBuf;
+		int cont = 3;
+		// Keep listening to the InputStream while connected
+
+		try {
+			/* send this packet 3 times */
+			while (cont > 0) {
+				socket = new DatagramSocket();
+				StringBuilder rawPacket;
+
+				rawPacket = new StringBuilder(
+						String.valueOf(VTLApplication.MSG_TYPE_LEADER_REQ))
+						.append(VTLApplication.MSG_SEPARATOR).append(
+								application.time.format("%k:%M:%S").toString());
+
+				outBuf = rawPacket.toString().getBytes();
+
+				// Send to multicast IP address and port
+				InetAddress address = InetAddress
+						.getByName(application.isBroadCastTX ? VTLApplication.BROADCASTADDRESS
+								: BeaconService.MULTICASTADDRESS);
+				outPacket = new DatagramPacket(outBuf, outBuf.length, address,
+						VTLApplication.PORT);
+				socket.setBroadcast(application.isBroadCastTX);
+				socket.send(outPacket);
+				cont--;
+				// System.out.println("Server sends : " + msg);
+
+				/*
+				 * socket = null; outPacket = null; outBuf = null;
+				 */}
+		} catch (SocketException e) {
+			Log.e(TAG, e.getMessage());
+
+		}
+
+		catch (IOException ioe) {
+			Log.e(TAG, ioe.getMessage());
+			socket.close();
+		}
 	}
 
 	public void VTLStatusSender(int leaderColor) {

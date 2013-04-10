@@ -5,6 +5,7 @@ import java.util.HashMap;
 import com.example.vtlproto.model.BeaconPacket;
 import com.example.vtlproto.model.NameValue;
 import com.example.vtlproto.model.TrafficLightPacket;
+import com.example.vtlproto.model.VTLLeaderPacket;
 
 import android.app.Activity;
 import android.content.Context;
@@ -79,8 +80,8 @@ public class VTLActivity extends Activity {
 				resetSquare(j, VTLApplication.SIZEY - 1 - i);
 
 			}
-		drawSquare((int)application.getCurrentPositionX(),
-				(int)application.getCurrentPositionY(), Color.BLUE);
+		drawSquare((int) application.getCurrentPositionX(),
+				(int) application.getCurrentPositionY(), Color.BLUE);
 		buttonStart = (Button) findViewById(R.id.buttonStart);
 		buttonDown = (Button) findViewById(R.id.buttonDown);
 		buttonUp = (Button) findViewById(R.id.buttonUp);
@@ -123,11 +124,11 @@ public class VTLActivity extends Activity {
 				shouldDraw = true;
 
 				// Log.i(VTLActivity.TAG, "Go down");
-				resetSquare((int)application.getCurrentPositionX(),
-						(int)application.getCurrentPositionY());
+				resetSquare((int) application.getCurrentPositionX(),
+						(int) application.getCurrentPositionY());
 				tvCurrentY.setText(String.valueOf(application.decCurrentY()));
-				drawSquare((int)application.getCurrentPositionX(),
-						(int)application.getCurrentPositionY(), Color.BLUE);
+				drawSquare((int) application.getCurrentPositionX(),
+						(int) application.getCurrentPositionY(), Color.BLUE);
 
 			}
 		});
@@ -135,32 +136,32 @@ public class VTLActivity extends Activity {
 		buttonUp.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				// Log.i(VTLActivity.TAG, "Go up");
-				resetSquare((int)application.getCurrentPositionX(),
-						(int)application.getCurrentPositionY());
+				resetSquare((int) application.getCurrentPositionX(),
+						(int) application.getCurrentPositionY());
 				tvCurrentY.setText(String.valueOf(application.incCurrentY()));
-				drawSquare((int)application.getCurrentPositionX(),
-						(int)application.getCurrentPositionY(), Color.BLUE);
+				drawSquare((int) application.getCurrentPositionX(),
+						(int) application.getCurrentPositionY(), Color.BLUE);
 			}
 		});
 		buttonLeft.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				// Log.i(VTLActivity.TAG, "Go left");
-				resetSquare((int)application.getCurrentPositionX(),
-						(int)application.getCurrentPositionY());
+				resetSquare((int) application.getCurrentPositionX(),
+						(int) application.getCurrentPositionY());
 				tvCurrentX.setText(String.valueOf(application.decCurrentX()));
-				drawSquare((int)application.getCurrentPositionX(),
-						(int)application.getCurrentPositionY(), Color.BLUE);
+				drawSquare((int) application.getCurrentPositionX(),
+						(int) application.getCurrentPositionY(), Color.BLUE);
 
 			}
 		});
 		buttonRight.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				// Log.i(VTLActivity.TAG, "Go right");
-				resetSquare((int)application.getCurrentPositionX(),
-						(int)application.getCurrentPositionY());
+				resetSquare((int) application.getCurrentPositionX(),
+						(int) application.getCurrentPositionY());
 				tvCurrentX.setText(String.valueOf(application.incCurrentX()));
-				drawSquare((int)application.getCurrentPositionX(),
-						(int)application.getCurrentPositionY(), Color.BLUE);
+				drawSquare((int) application.getCurrentPositionX(),
+						(int) application.getCurrentPositionY(), Color.BLUE);
 
 			}
 		});
@@ -233,8 +234,7 @@ public class VTLActivity extends Activity {
 				char type = text.charAt(0);
 
 				switch (type) {
-				case VTLApplication.MSG_TYPE_BEACON:
-
+				case VTLApplication.MSG_TYPE_BEACON: {
 					BeaconPacket beaconPacket = new BeaconPacket(text);
 					String IPAddress = beaconPacket.getIPAdress();
 
@@ -248,76 +248,109 @@ public class VTLActivity extends Activity {
 						numNeighbors++;
 					} else {
 						/* to reset last position */
-						resetSquare((int)application.hashMapNeighbors.get(IPAddress)
-								.getX(),
-								(int)application.hashMapNeighbors.get(IPAddress)
-										.getY());
+						resetSquare(
+								(int) application.hashMapNeighbors.get(
+										IPAddress).getX(),
+								(int) application.hashMapNeighbors.get(
+										IPAddress).getY());
 						beaconPacket.setColor(application.hashMapNeighbors.get(
 								IPAddress).getColor());
 						application.hashMapNeighbors.put(IPAddress,
 								beaconPacket);
 					}
-					drawSquare((int)beaconPacket.getX(),(int) beaconPacket.getY(),
-							beaconPacket.getColor());
-
-					break;
-
-				case VTLApplication.MSG_TYPE_LIGHT_STATUS:
-					if (true)
-				//	if (application.conflictDetected && application.waitingForLeaderMessage)
-//Log.i(TAG,"got a S packet:"+text);
-					{
-						TrafficLightPacket trafficLightPacket = new TrafficLightPacket(
-								text);
-
-						/*Log.i(TAG,"wih timer"+trafficLightPacket.getTimer());
-						Log.i(TAG,"laneid0:"+trafficLightPacket.getStatusLaneIds().get(0).getName());
-						Log.i(TAG,"status0:"+trafficLightPacket.getStatusLaneIds().get(0).getCharValue());
-*/
-
-						for (NameValue statusLaneId:trafficLightPacket.getStatusLaneIds())
-						{
-							if (statusLaneId.getName().equals(application.laneId))
-							{
-								
-								char status = statusLaneId.getCharValue(); 
-										switch (status) {
-										case VTLApplication.MSG_LIGHT_STATUS_GREEN:
-											application.trafficLightColor = Color.GREEN;
-											trafficLight
-													.setBackgroundColor(application.trafficLightColor);
-											//application.waitingForLeaderMessage = false;
-											//Log.d(TAG, "got green light message from leader");
-											break;
-										case VTLApplication.MSG_LIGHT_STATUS_RED:
-									
-											
-											application.trafficLightColor = Color.RED;
-											trafficLight
-													.setBackgroundColor(application.trafficLightColor);
-											
-											//Log.d(TAG, "got red light message from leader");
-
-											//application.waitingForLeaderMessage = false;
-
-											break;
-										}
-								
-								break;
-							}
-						}
-						
-					}
+					drawSquare((int) beaconPacket.getX(),
+							(int) beaconPacket.getY(), beaconPacket.getColor());
 
 					break;
 				}
 
-				// Toast.makeText(context,
-				// "i got"+msg.getData().getString("Message"),
-				// Toast.LENGTH_SHORT).show();
+				case VTLApplication.MSG_TYPE_LEADER_REQ:
 
-				break;
+				{
+					VTLLeaderPacket VTLLeaderPacket = new VTLLeaderPacket(text);
+					String IPAddress = VTLLeaderPacket.getIPAdress();
 
+					if (application.clusterLeader != null
+							&& application.clusterLeader.getIPAdress().equals(
+									application.IPAddress))
+
+					{
+						Intent serviceIntent = new Intent(context,
+								SendUnicastAckPacketService.class);
+						serviceIntent.putExtra(
+								SendUnicastAckPacketService.EXTRAS_DST_IP,
+								IPAddress);
+						context.startService(serviceIntent);
+					}
+					break;
+				}
+
+				case VTLApplication.MSG_TYPE_LIGHT_STATUS: {
+					// if (true)
+					// if (application.conflictDetected &&
+					// application.waitingForLeaderMessage)
+					// Log.i(TAG,"got a S packet:"+text);
+					{
+						TrafficLightPacket trafficLightPacket = new TrafficLightPacket(
+								text);
+
+						/*
+						 * Log.i(TAG,"wih timer"+trafficLightPacket.getTimer());
+						 * Log
+						 * .i(TAG,"laneid0:"+trafficLightPacket.getStatusLaneIds
+						 * ().get(0).getName());
+						 * Log.i(TAG,"status0:"+trafficLightPacket
+						 * .getStatusLaneIds().get(0).getCharValue());
+						 */
+						application.timeLeftForCurrentStatus=Integer.valueOf(trafficLightPacket.getTimer());
+						for (NameValue statusLaneId : trafficLightPacket
+								.getStatusLaneIds()) {
+							if (statusLaneId.getName().equals(
+									application.laneId)) {
+
+								char status = statusLaneId.getCharValue();
+								switch (status) {
+								case VTLApplication.MSG_LIGHT_STATUS_GREEN: {
+									application.trafficLightColor = Color.GREEN;
+									trafficLight
+											.setBackgroundColor(application.trafficLightColor);
+									// application.waitingForLeaderMessage =
+									// false;
+									// Log.d(TAG,
+									// "got green light message from leader");
+									break;
+								}
+								case VTLApplication.MSG_LIGHT_STATUS_RED: {
+
+									application.trafficLightColor = Color.RED;
+									trafficLight
+											.setBackgroundColor(application.trafficLightColor);
+
+									// Log.d(TAG,
+									// "got red light message from leader");
+
+									// application.waitingForLeaderMessage =
+									// false;
+
+									break;
+								}
+								}
+
+								break;
+							}
+						}
+
+					}
+
+					// break;
+				}
+
+					// Toast.makeText(context,
+					// "i got"+msg.getData().getString("Message"),
+					// Toast.LENGTH_SHORT).show();
+
+					break;
+				}
 			default:
 				break;
 			}
@@ -329,8 +362,7 @@ public class VTLActivity extends Activity {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 
-			case VTLApplication.VTLLOGICSERVICE_HANDLER_RX_CONFLICT_DETECTED:
-
+			case VTLApplication.VTLLOGICSERVICE_HANDLER_RX_CONFLICT_DETECTED: {
 				trafficLight.setBackgroundColor(application.trafficLightColor);
 				TextView tvIntersection = (TextView) findViewById(R.id.tvIntersection);
 				if (application.junctionId != null)
@@ -341,8 +373,8 @@ public class VTLActivity extends Activity {
 					tvIntersection.setText("no");
 
 				break;
-			case VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS:
-
+			}
+			case VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS: {
 				TextView tvClosestCarToIntersection = (TextView) findViewById(R.id.tvClosestCarToIntersection);
 				String textClosestCarToIntersection = msg.getData().getString(
 						"closestCarToIntersection");
@@ -352,8 +384,8 @@ public class VTLActivity extends Activity {
 				trafficLight.setBackgroundColor(application.trafficLightColor);
 
 				break;
-
-			case VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_DISTANCE:
+			}
+			case VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_DISTANCE: {
 				TextView tvOtherDistanceToIntersection = (TextView) findViewById(R.id.tvOtherDistanceToIntersection);
 				float otherDistanceToIntersection = msg.getData().getFloat(
 						"otherDistanceToIntersection");
@@ -361,6 +393,16 @@ public class VTLActivity extends Activity {
 						.valueOf(otherDistanceToIntersection));
 
 				break;
+			}
+
+			case VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_CLUSTER_LEADER: {
+				TextView tvClusterLeaader = (TextView) findViewById(R.id.tvClusterLeaader);
+
+				tvClusterLeaader.setText((String) msg.obj);
+
+				break;
+			}
+
 			default:
 				break;
 			}
@@ -379,8 +421,9 @@ public class VTLActivity extends Activity {
 							@Override
 							public void run() {
 
-								drawSquare((int)application.getCurrentPositionX(),
-										(int)application.getCurrentPositionY(),
+								drawSquare(
+										(int) application.getCurrentPositionX(),
+										(int) application.getCurrentPositionY(),
 										Color.BLUE);
 								application.time.setToNow();
 								tvTime.setText(application.time

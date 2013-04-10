@@ -34,7 +34,7 @@
         </activity>
         
         <service android:name=".BeaconService" />
-         <service android:enabled="true" android:name=".SendUnicastService" />
+         <service android:enabled="true" android:name=".SendUnicastAckPacketService" />
     </application>
 
 </manifest>
