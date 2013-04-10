@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
@@ -262,20 +263,21 @@ public class VTLLogicService {
 					Thread.sleep(VTLApplication.SLEEPTIME_CONFLICTDETECTION);
 
 				}
-			} catch (InterruptedException ie) {
+			}
+
+			catch (InterruptedException ie) {
 				Log.i(TAG, ie.getMessage());
 				runFlagConflictDetection = false;
 
 				Thread.currentThread().interrupt();
 			}
-			
+
 			catch (Exception e) {
 				Log.i(TAG, e.getMessage());
 				runFlagConflictDetection = false;
 
 				Thread.currentThread().interrupt();
 			}
-
 
 		}
 	}
@@ -354,7 +356,10 @@ public class VTLLogicService {
 
 				}
 
-				/*in case there is a tie in distances, i choose the one with the lowest ip value*/
+				/*
+				 * in case there is a tie in distances, i choose the one with
+				 * the lowest ip value
+				 */
 				if (neighbordistanceFromIntersecion == closestCarToIntersection
 						.getDistance()) {
 
@@ -562,7 +567,12 @@ public class VTLLogicService {
 			/*
 			 * socket = null; outPacket = null; outBuf = null;
 			 */
-		} catch (IOException ioe) {
+		} catch (SocketException e) {
+			Log.e(TAG, e.getMessage());
+
+		}
+
+		catch (IOException ioe) {
 			Log.e(TAG, ioe.getMessage());
 			socket.close();
 			Thread.currentThread().interrupt();
