@@ -6,6 +6,9 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -78,7 +81,6 @@ public class BeaconService {
 
 					String stringMsg = new String(inBuf, 0,
 							inPacket.getLength());
-					
 
 					processRXPacket(stringMsg, rxIPAdress);
 
@@ -93,7 +95,7 @@ public class BeaconService {
 				Log.e(TAG, ioe.getMessage());
 				Thread.currentThread().interrupt();
 				runFlagListener = false;
-				//socket.close();
+				// socket.close();
 			} catch (InterruptedException ie) {
 				// Log.i(VTLActivity.TAG, ie.getMessage());
 				Thread.currentThread().interrupt();
@@ -110,8 +112,20 @@ public class BeaconService {
 		stringMsg = (new StringBuilder(stringMsg).append(",")
 				.append(rxIPAdress)).toString();
 
-		
-		//Log.i(TAG, "Listener Thread got:  "+ stringMsg);
+		String[] fields = stringMsg.split(String
+				.valueOf(VTLApplication.MSG_SEPARATOR));
+		Date packetDate = new Date(application.getTimeAndDateInLong());
+		try {
+			
+			packetDate = new SimpleDateFormat("yyyy.MM.dd H:mm:ss.S").parse(fields[1]);
+			
+		} catch (ParseException e) {
+			Log.e(TAG, e.getMessage());
+		}
+
+		long difference = application.getTimeAndDateInLong() - packetDate.getTime();
+		application.writeToFile(stringMsg + " received at " + application.getTimeAndDate() + ", difference(ms): " + difference + "\n");
+		// Log.i(TAG, "Listener Thread got:  "+ stringMsg);
 		Message msg = myUpdateHandler
 				.obtainMessage(VTLApplication.BEACONSERVICE_HANDLER_RX_TEXT);
 		Bundle bundle = new Bundle();
@@ -198,10 +212,10 @@ public class BeaconService {
 
 				while (runFlagBeacon) {
 
-					msg = (new StringBuilder(String.valueOf(VTLApplication.MSG_TYPE_BEACON))
+					msg = (new StringBuilder(
+							String.valueOf(VTLApplication.MSG_TYPE_BEACON))
 							.append(VTLApplication.MSG_SEPARATOR)
-							.append(application.time.format("%k:%M:%S")
-									.toString())
+							.append(application.getTimeAndDate())
 							.append(VTLApplication.MSG_SEPARATOR)
 							.append(application.getCurrentPositionX())
 							.append(VTLApplication.MSG_SEPARATOR)
@@ -211,7 +225,7 @@ public class BeaconService {
 							.append(VTLApplication.MSG_SEPARATOR)
 							.append(application.laneId)
 							.append(VTLApplication.MSG_SEPARATOR)
-							.append(application.amIleader?1:0)
+							.append(application.amIleader ? 1 : 0)
 
 							.toString();
 
@@ -258,7 +272,7 @@ public class BeaconService {
 
 	public void start() {
 		if (!application.beaconServiceStatus) {
-			application.beaconServiceStatus=true;
+			application.beaconServiceStatus = true;
 			Log.d(TAG, "trying to start  BeaconServiceThreads");
 			runFlagListener = true;
 			runFlagBeacon = true;
@@ -273,7 +287,7 @@ public class BeaconService {
 
 			senderThread = new SenderThread();
 			senderThread.start();
-			
+
 		} else {
 			Log.e(TAG,
 					"trying to start  BeaconServiceThreads, which has already been started");

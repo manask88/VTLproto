@@ -1,13 +1,18 @@
 package com.example.vtlproto;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.nio.channels.Channel;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -25,17 +30,23 @@ import com.example.vtlproto.model.map.Map;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Color;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.Bundle;
 import android.provider.Settings;
 import android.text.format.Time;
 import android.util.Log;
+import android.widget.Toast;
 
 public class VTLApplication extends Application {
 
@@ -108,7 +119,7 @@ public class VTLApplication extends Application {
 	public final static int PORT = 8888;
 	public final static int PORT_2 = 8889;
 	public boolean isBroadCastTX;
-	public static final int SLEEPTIME_SEND = 1000;
+	public static final int SLEEPTIME_SEND = 100;
 	public static final int SLEEPTIME_RECEIVE = 100;
 	public final static int SLEEPTIME_VTLSTATUS = 1000;
 
@@ -123,7 +134,7 @@ public class VTLApplication extends Application {
 	public final static int[] COLORS = { Color.BLACK, Color.RED, Color.WHITE,
 			Color.YELLOW };
 
-	public final static int SLEEPTIME_TIME = 1000;
+	public final static int SLEEPTIME_TIME = 100;
 	public final static int BEACONSERVICE_HANDLER_RX_TEXT = 1;
 
 	public final static int VTLLOGICSERVICE_HANDLER_RX_CONFLICT_DETECTED = 2;
@@ -140,7 +151,6 @@ public class VTLApplication extends Application {
 	public final static char MSG_LIGHT_STATUS_GREEN = 'G';
 	public final static char MSG_LIGHT_STATUS_RED = 'R';
 
-	public Time time;
 	public String IPAddress;
 	public int trafficLightColor;
 	public Point junctionPoint;
@@ -157,6 +167,8 @@ public class VTLApplication extends Application {
 	public String junctionId, laneId;
 	public float directionAngle;
 	public Map map;
+	private OutputStreamWriter outWriter;
+	private FileOutputStream fileOut;
 
 	public float getCurrentPositionX() {
 		return currentPositionX;
@@ -240,7 +252,6 @@ public class VTLApplication extends Application {
 		currentPositionX = SIZEX / 2;
 		currentPositionY = 0;
 		trafficLightColor = Color.WHITE;
-		time = new Time(Time.getCurrentTimezone());
 		Log.i(TAG, "onCreated");
 
 		WifiManager wifiManager = (WifiManager) this
@@ -275,11 +286,23 @@ public class VTLApplication extends Application {
 
 		}
 
+		if (IPAddress.equals("0.0.0.0"))
+			IPAddress="192.168.49.1";
+		
+		
+		BROADCASTADDRESS = "192.168.49.255";
+		
+		
+		
 		if (getWiFIDirectIPAddress(true) != null) {
 
-			IPAddress =getWiFIDirectIPAddress(true);
+			IPAddress = getWiFIDirectIPAddress(true);
+			if (IPAddress.equals("0.0.0.0"))
+				IPAddress="192.168.49.1";
+			Log.i(TAG, IPAddress);
+			//BROADCASTADDRESS = "255.255.255.255";
 			/* gets ip in case its using wifi direct */
-			BROADCASTADDRESS = "192.168.49.255";
+			//BROADCASTADDRESS = "192.168.49.255";
 
 		}
 
@@ -288,6 +311,7 @@ public class VTLApplication extends Application {
 	@Override
 	public void onTerminate() {
 		super.onTerminate();
+
 		Log.i(TAG, "onTerminated");
 	}
 
@@ -509,4 +533,63 @@ public class VTLApplication extends Application {
 
 	}
 
+	public String getTimeDisplay() {
+
+		String stringTime = new SimpleDateFormat("H:mm:ss.S").format(System
+				.currentTimeMillis());
+
+		return stringTime.substring(0, stringTime.length() - 2);
+
+		/*
+		 * return new SimpleDateFormat("H:mm:ss.S").format(System
+		 * .currentTimeMillis());
+		 */
+
+	}
+
+	public String getTimeAndDate() {
+		return new SimpleDateFormat("yyyy.MM.dd H:mm:ss.S").format(System
+				.currentTimeMillis());
+
+	}
+
+	public long getTimeAndDateInLong() {
+		return System.currentTimeMillis();
+
+	}
+
+	void createAndOpenFile() {
+		try {
+			File logFile = new File("/sdcard/logVTL.txt");
+
+			logFile.createNewFile();
+
+			fileOut = new FileOutputStream(logFile);
+			outWriter = new OutputStreamWriter(fileOut);
+
+		} catch (IOException e) {
+			Log.e(TAG, e.getMessage());
+
+		}
+	}
+
+	void closeFile() {
+		try {
+			outWriter.close();
+			fileOut.close();
+		} catch (IOException e) {
+			Log.e(TAG, e.getMessage());
+
+		}
+
+	}
+
+	void writeToFile(String text) {
+
+		try {
+			outWriter.append(text);
+		} catch (IOException e) {
+			Log.e(TAG, e.getMessage());
+		}
+	}
 }

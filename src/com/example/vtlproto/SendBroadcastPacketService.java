@@ -20,19 +20,19 @@ import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 
 
-public class SendUnicastAckPacketService extends IntentService {
+public class SendBroadcastPacketService extends IntentService {
 
-	private static final String TAG = SendUnicastAckPacketService.class.getSimpleName();
+	private static final String TAG = SendBroadcastPacketService.class.getSimpleName();
 	public static final String EXTRAS_RAW_PACKET = "raw_packet";
 	public static final String EXTRAS_DST_IP = "dst_ip";
 	private VTLApplication application;
 	private String rawPacket;
 
-	public SendUnicastAckPacketService(String name) {
+	public SendBroadcastPacketService(String name) {
 		super(name);
 	}
 
-	public SendUnicastAckPacketService() {
+	public SendBroadcastPacketService() {
 		super("SendUnicastService");
 	}
 

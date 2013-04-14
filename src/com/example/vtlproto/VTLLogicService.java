@@ -611,7 +611,7 @@ public class VTLLogicService {
 				rawPacket = new StringBuilder(
 						String.valueOf(VTLApplication.MSG_TYPE_LEADER_REQ))
 						.append(VTLApplication.MSG_SEPARATOR).append(
-								application.time.format("%k:%M:%S").toString());
+								application.getTimeAndDate());
 
 				outBuf = rawPacket.toString().getBytes();
 
@@ -658,7 +658,7 @@ public class VTLLogicService {
 				rawPacket = new StringBuilder(
 						String.valueOf(VTLApplication.MSG_TYPE_LIGHT_STATUS))
 						.append(VTLApplication.MSG_SEPARATOR)
-						.append(application.time.format("%k:%M:%S").toString())
+						.append(application.getTimeAndDate())
 						.append(VTLApplication.MSG_SEPARATOR).append(timer);
 				for (NameValue isConflictingLane : getConflictLanes(
 						application.junctionId, application.directionAngle)) {

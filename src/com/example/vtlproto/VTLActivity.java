@@ -1,7 +1,15 @@
 package com.example.vtlproto;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 
+import com.example.vtlproto.R;
 import com.example.vtlproto.model.BeaconPacket;
 import com.example.vtlproto.model.NameValue;
 import com.example.vtlproto.model.TrafficLightPacket;
@@ -14,9 +22,13 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
@@ -25,8 +37,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Log;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
-public class VTLActivity extends Activity {
+public class VTLActivity extends Activity implements LocationListener{
 
 	public final static String TAG = VTLActivity.class.getSimpleName();
 	public final static int SQUARESIZE = 50;
@@ -40,17 +61,72 @@ public class VTLActivity extends Activity {
 	private int numNeighbors;
 	private Canvas canvas;
 	private Bitmap bitmap;
-	private VTLApplication application;;
+	private VTLApplication application;
+	long lDateTime;
+	
 	BeaconService beaconService;
 	Boolean servicesStatus;
 	VTLLogicService VTLLogicService;
+	public LocationManager locationManager;
+	  private GoogleMap map;
+	  static final LatLng HAMBURG = new LatLng(53.558, 9.927);
+	  static final LatLng KIEL = new LatLng(53.551, 9.993);
+	  static final LatLng intersection = new LatLng(40.440444,-79.942161);
 
+	  public float gradeMinSecTograde(float grade, float min, float seconds)
+	  {
+		  
+		  float secondsToHours=seconds/3600;
+		  float minToHours=min/60;
+		  
+		  return grade+minToHours+secondsToHours;
+		  
+	  }
+
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+
+		map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map))
+		        .getMap();
+		    Marker hamburg = map.addMarker(new MarkerOptions().position(intersection)
+		        .title("Hamburg"));
+		    Marker kiel = map.addMarker(new MarkerOptions()
+		        .position(KIEL)
+		        .title("Kiel")
+		        .snippet("Kiel is cool")
+		        .icon(BitmapDescriptorFactory
+		            .fromResource(R.drawable.ic_launcher)));
+
+		    // Move the camera instantly to hamburg with a zoom of 15.
+		    map.moveCamera(CameraUpdateFactory.newLatLngZoom(intersection, 20));
+		    UiSettings  uiSettings =map.getUiSettings();
+		    uiSettings.setAllGesturesEnabled(false);
+		    uiSettings.setZoomControlsEnabled(false);
+		    
+		    // Zoom in, animating the camera.
+		   // map.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
+		
 		application = (VTLApplication) this.getApplication();
 
-		setContentView(R.layout.activity_main);
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        boolean enabled = locationManager
+      		  .isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+      		// Check if enabled and if not send user to the GSP settings
+      		// Better solution would be to display a dialog and suggesting to 
+      		// go to the settings
+      	/*	if (!enabled) {
+      		  Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+      		  startActivity(intent);
+      		} 
+      */
+      Location lastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+      if (lastLocation !=null) onLocationChanged(lastLocation);
+      locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100, 1, this);
+		
 		application.hashMapNeighbors = new HashMap<String, BeaconPacket>(
 				VTLApplication.MAX_NEIGHBORS);
 		numNeighbors = 0;
@@ -195,12 +271,37 @@ public class VTLActivity extends Activity {
 	}
 
 	@Override
+	protected void onResume() {
+		super.onResume();
+		Log.i(TAG, "onResume");
+		application.createAndOpenFile();
+
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		Log.i(TAG, "onDestroy");
+
+	}
+	
+	@Override
+	protected void onStop() {
+		super.onStop();
+		Log.i(TAG, "onStop");
+	}
+	@Override
 	protected void onPause() {
 		super.onPause();
-		this.finish();
-		android.os.Process.killProcess(android.os.Process.myPid());
-		System.exit(0);
-		getParent().finish();
+		Log.i(TAG, "onPause");
+		application.closeFile();
+		beaconService.stop();
+		VTLLogicService.stop();
+		application.beaconServiceStatus=false;
+		//this.finish();
+		//android.os.Process.killProcess(android.os.Process.myPid());
+		//System.exit(0);
+		//getParent().finish();
 	}
 
 	@Override
@@ -425,9 +526,13 @@ public class VTLActivity extends Activity {
 										(int) application.getCurrentPositionX(),
 										(int) application.getCurrentPositionY(),
 										Color.BLUE);
-								application.time.setToNow();
-								tvTime.setText(application.time
-										.format("%k:%M:%S"));
+								
+								
+
+							 
+								tvTime.setText(application.getTimeDisplay());
+							
+								//tvTime.setText(date.getHours()+":"+date.getMinutes()+date.getSeconds()+date.getTime()%1000);
 
 								/* for debug */
 								float flo = 0;
@@ -452,4 +557,34 @@ public class VTLActivity extends Activity {
 			}
 		}.start();
 	}
+	
+	
+	@Override
+	public void onLocationChanged(Location location) {
+		// TODO Auto-generated method stub
+		
+		//lDateTime=location.g;
+		
+		//location.getTime()
+		
+	}
+
+	@Override
+	public void onProviderDisabled(String arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onProviderEnabled(String arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
+		// TODO Auto-generated method stub
+		
+	}
+	
 }

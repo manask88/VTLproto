@@ -4,25 +4,39 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
+    <!-- Because version 2 of the Google Maps Android API requires OpenGL ES version 2, -->
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true" />
+ 
     <uses-sdk
-        android:minSdkVersion="7"
-        android:targetSdkVersion="7" />
-    	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-	<uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-	<uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-	<uses-permission android:name="android.permission.INTERNET" />
-	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-		<uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
-			<uses-permission android:name="android.permission.WRITE_SETTINGS" />
-		
+        android:minSdkVersion="11"
+        android:targetSdkVersion="15" />
+
+    <permission
+        android:name="com.example.vtlproto.permission.MAPS_RECEIVE"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="com.example.vtlproto.permission.MAPS_RECEIVE" />
+        <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+    
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" /> 
     <application
+        android:name="com.example.vtlproto.VTLApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme"
-        android:name=".VTLApplication" >
-         
-        
+        android:theme="@style/AppTheme" >
         <activity
             android:name="com.example.vtlproto.VTLActivity"
             android:label="@string/app_name" >
@@ -32,9 +46,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
-        <service android:name=".BeaconService" />
-         <service android:enabled="true" android:name=".SendUnicastAckPacketService" />
+
+        <service android:name="com.example.vtlproto.BeaconService" />
+        <service
+            android:name="com.example.vtlproto.SendUnicastAckPacketService"
+            android:enabled="true" />
+
+        <meta-data
+            android:name="com.google.android.maps.v2.API_KEY"
+            android:value="AIzaSyCJ9uE3p0cXYvZMgxzbLnfGscWILMx41eQ" />
     </application>
 
 </manifest>
