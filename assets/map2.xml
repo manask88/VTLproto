@@ -51,7 +51,7 @@
     <edge id=":j_0_6" angle="90">
 
         <lane
-            id=":j_0_4_0"
+            id=":j_0_6_0"
             length="4.00"
             shape="6,0 6,4" />
     </edge>
@@ -59,7 +59,7 @@
     <edge id=":j_0_7" angle="270">
 
         <lane
-            id=":j_0_5_0"
+            id=":j_0_7_0"
             length="4.00"
             shape="5,4 5,0" />
     </edge>

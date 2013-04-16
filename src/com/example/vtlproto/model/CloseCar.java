@@ -2,7 +2,7 @@ package com.example.vtlproto.model;
 
 public class CloseCar extends BeaconPacket {
 
-	float distance;
+	double distance;
 
 	public CloseCar(BeaconPacket beaconPacket) {
 
@@ -22,11 +22,11 @@ public class CloseCar extends BeaconPacket {
 	public CloseCar() {
 	}
 
-	public float getDistance() {
+	public double getDistance() {
 		return distance;
 	}
 
-	public void setDistance(float distance) {
+	public void setDistance(double distance) {
 		this.distance = distance;
 	}
 

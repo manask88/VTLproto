@@ -115,7 +115,7 @@ public class VTLApplication extends Application {
 	public static final int SIZEX = ROAD_MATRIX.length;
 	public final static int SIZEY = ROAD_MATRIX.length;
 	private static final String TAG = VTLApplication.class.getSimpleName();
-	private float currentPositionX, currentPositionY;
+	private double currentPositionX, currentPositionY;
 	public final static int PORT = 8888;
 	public final static int PORT_2 = 8889;
 	public boolean isBroadCastTX;
@@ -170,30 +170,30 @@ public class VTLApplication extends Application {
 	private OutputStreamWriter outWriter;
 	private FileOutputStream fileOut;
 
-	public float getCurrentPositionX() {
+	public double getCurrentPositionX() {
 		return currentPositionX;
 	}
 
-	public float getCurrentPositionY() {
+	public double getCurrentPositionY() {
 		return currentPositionY;
 	}
 
-	public float incCurrentX() {
+	public double incCurrentX() {
 		setCurrentPosition(new Point(currentPositionX + 1, currentPositionY));
 		return currentPositionX;
 	}
 
-	public float incCurrentY() {
+	public double incCurrentY() {
 		setCurrentPosition(new Point(currentPositionX, currentPositionY + 1));
 		return currentPositionY;
 	}
 
-	public float decCurrentX() {
+	public double decCurrentX() {
 		setCurrentPosition(new Point(currentPositionX - 1, currentPositionY));
 		return currentPositionX;
 	}
 
-	public float decCurrentY() {
+	public double decCurrentY() {
 		setCurrentPosition(new Point(currentPositionX, currentPositionY - 1));
 		return currentPositionY;
 	}
@@ -210,7 +210,16 @@ public class VTLApplication extends Application {
 
 	}
 
-	public void setCurrentPositionY(float newPositionY) {
+	
+	public void setCurrentPosition(Location location) {
+
+		
+		currentPositionX=location.getLongitude();
+		currentPositionY=location.getLatitude();
+
+
+	}
+	public void setCurrentPositionY(double newPositionY) {
 		if ((newPositionY < SIZEY)
 				&& (newPositionY >= 0)
 				&& (ROAD_MATRIX[(int) (SIZEY - 1 - newPositionY)][(int) currentPositionX])) {
@@ -222,7 +231,7 @@ public class VTLApplication extends Application {
 		}
 	}
 
-	public void setCurrentPositionX(float newPositionX) {
+	public void setCurrentPositionX(double newPositionX) {
 		if ((newPositionX < SIZEX)
 				&& (newPositionX >= 0)
 				&& (ROAD_MATRIX[(int) (SIZEY - 1 - currentPositionY)][(int) newPositionX])) {
@@ -247,8 +256,8 @@ public class VTLApplication extends Application {
 
 		String s = readTextFile(inputStream);
 		map = new Map(s);
-		setBooleanMap(map);
-		isBroadCastTX = true;
+		//setBooleanMap(map);
+		isBroadCastTX = false;
 		currentPositionX = SIZEX / 2;
 		currentPositionY = 0;
 		trafficLightColor = Color.WHITE;
@@ -355,12 +364,12 @@ public class VTLApplication extends Application {
 		return null;
 	}
 
-	public static float getIfromY(float y) {
+	public static double getIfromY(double y) {
 		return (SIZEY - 1 - y);
 
 	}
 
-	public static float getYfromI(float i) {
+	public static double getYfromI(double i) {
 		return (SIZEY - 1 - i);
 
 	}
@@ -394,13 +403,13 @@ public class VTLApplication extends Application {
 				// origin.getY());
 				// Log.i(TAG, "end:x:" + end.getX() + ",y:" + end.getY());
 
-				float distanceX = end.getX() - origin.getX();
-				float distanceY = end.getY() - origin.getY();
+				double distanceX = end.getX() - origin.getX();
+				double distanceY = end.getY() - origin.getY();
 
-				float length = lane.getLength();
+				double length = lane.getLength();
 
-				for (float i = 0; i <= length; i++) {
-					float x, y;
+				for (double i = 0; i <= length; i++) {
+					double x, y;
 					if (distanceX >= 0)
 						x = origin.getX() + i * distanceX / length;
 					else
@@ -431,7 +440,7 @@ public class VTLApplication extends Application {
 
 	}
 
-	private String findLane(Map map, float x, float y) {
+	private String findLane(Map map, double x, double y) {
 
 		for (Edge edge : map.getEdges()) {
 			for (Lane lane : edge.getLanes()) {

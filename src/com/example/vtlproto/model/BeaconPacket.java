@@ -1,6 +1,7 @@
 package com.example.vtlproto.model;
 
 import com.example.vtlproto.VTLApplication;
+import com.google.android.gms.maps.model.Marker;
 
 
 public class BeaconPacket {
@@ -13,7 +14,15 @@ public class BeaconPacket {
 	boolean isVTLLeader;
 	private String IPAdress;
 	private int color;
-	
+	private Marker marker;
+	public Marker getMarker() {
+		return marker;
+	}
+
+	public void setMarker(Marker marker) {
+		this.marker = marker;
+	}
+
 	public int getColor() {
 		return color;
 	}
@@ -33,6 +42,7 @@ public class BeaconPacket {
 		laneId=fields[5];
 		isVTLLeader=fields[6].equals("0")?false:true;
 		IPAdress=fields[7];
+		marker=null;
 	}
 
 	public BeaconPacket()

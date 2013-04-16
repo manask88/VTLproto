@@ -63,8 +63,8 @@ public class Map {
 					String[] pointString = pointsString[k].split(String
 							.valueOf(POINT_SEPARATOR));
 
-					Point point = new Point(Float.valueOf(pointString[0]),
-							Float.valueOf(pointString[1]));
+					Point point = new Point(Double.valueOf(pointString[0]),
+							Double.valueOf(pointString[1]));
 
 					// Point point = new Point(1, 1);
 

@@ -20,6 +20,7 @@ import com.example.vtlproto.model.map.Lane;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -310,7 +311,7 @@ public class VTLLogicService {
 			 * value.getY() - application.getCurrentPositionY(), 2); float
 			 * result = (float) Math.sqrt(sqrX + sqrY);
 			 */
-			Float result = getDistance(value.getX(), value.getY(),
+			double result = getDistance(value.getX(), value.getY(),
 					application.getCurrentPositionX(),
 					application.getCurrentPositionY());
 
@@ -340,12 +341,25 @@ public class VTLLogicService {
 		float sqrY = (float) Math.pow(y1 - y2, 2);
 		return (float) Math.sqrt(sqrX + sqrY);
 	}
+	
+	
+	static double getDistance(double x1, double y1, double x2, double y2) {
+Location l1=new Location("loc1");
+l1.setLatitude(y1);
+l1.setLongitude(x1);
+Location l2=new Location("loc2");
+l2.setLatitude(y2);
+l2.setLongitude(x2);
 
+
+
+		return l1.distanceTo(l2);
+	}
 	void getVTLLeader(ArrayList<CloseCar> closeNeighbors) {
 
 		for (CloseCar closeCar : closeNeighbors) {
 
-			float neighbordistanceFromIntersecion;
+			double neighbordistanceFromIntersecion;
 
 			{
 				neighbordistanceFromIntersecion = getDistance(
@@ -356,7 +370,7 @@ public class VTLLogicService {
 				msg = myUpdateHandler
 						.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_DISTANCE);
 				Bundle bundle = new Bundle();
-				bundle.putFloat("otherDistanceToIntersection",
+				bundle.putDouble("otherDistanceToIntersection",
 						neighbordistanceFromIntersecion);
 				msg.setData(bundle);
 
@@ -426,7 +440,7 @@ public class VTLLogicService {
 			for (CloseCar closeCar : closeNeighbors) {
 
 				if (closeCar.getLaneId().equals(application.laneId)) {
-					float neighbordistanceFromIntersecion;
+					double neighbordistanceFromIntersecion;
 
 					{
 						neighbordistanceFromIntersecion = getDistance(

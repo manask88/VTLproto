@@ -2,10 +2,10 @@ package com.example.vtlproto.model.map;
 
 public class Point {
 
-	private float x;
-	private float y;
+	private double x;
+	private double y;
 	
-	public Point(float x, float y)
+	public Point(double x, double y)
 	{
 		this.x=x;
 		this.y=y;
@@ -13,16 +13,16 @@ public class Point {
 		
 	}
 	
-	public float getX() {
+	public double getX() {
 		return x;
 	}
-	public void setX(int x) {
+	public void setX(double x) {
 		this.x = x;
 	}
-	public float getY() {
+	public double getY() {
 		return y;
 	}
-	public void setY(int y) {
+	public void setY(double y) {
 		this.y = y;
 	}
 	
