@@ -97,12 +97,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal" >
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -111,6 +105,23 @@
 
                 <TextView
                     android:id="@+id/tvClusterLeaader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" >
+                
+                   <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="My Angle: " />
+
+                <TextView
+                    android:id="@+id/tvAngle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="" />
@@ -196,21 +207,24 @@
             </LinearLayout>
         </LinearLayout>
 
-          <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal" >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
             <TextView
-                    android:id="@+id/tvLat"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0" />
-              <TextView
-                    android:id="@+id/tvLong"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0" />
-  </LinearLayout>
+                android:id="@+id/tvLat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0" />
+
+            <TextView
+                android:id="@+id/tvLong"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0" />
+        </LinearLayout>
+
         <TableLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

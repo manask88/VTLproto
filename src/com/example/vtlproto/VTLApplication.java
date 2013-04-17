@@ -162,7 +162,7 @@ public class VTLApplication extends Application {
 	public boolean amIleader = false;
 	public boolean didIgetLeaderPacket = false;
 	public int timeLeftForCurrentStatus = 0;
-
+	public boolean realLocations = true;
 	public boolean waitingForLeaderMessage = false;
 	public String junctionId, laneId;
 	public float directionAngle;
@@ -210,15 +210,13 @@ public class VTLApplication extends Application {
 
 	}
 
-	
 	public void setCurrentPosition(Location location) {
 
-		
-		currentPositionX=location.getLongitude();
-		currentPositionY=location.getLatitude();
-
+		currentPositionX = location.getLongitude();
+		currentPositionY = location.getLatitude();
 
 	}
+
 	public void setCurrentPositionY(double newPositionY) {
 		if ((newPositionY < SIZEY)
 				&& (newPositionY >= 0)
@@ -256,8 +254,8 @@ public class VTLApplication extends Application {
 
 		String s = readTextFile(inputStream);
 		map = new Map(s);
-		//setBooleanMap(map);
-		isBroadCastTX = false;
+		// setBooleanMap(map);
+		isBroadCastTX = true;
 		currentPositionX = SIZEX / 2;
 		currentPositionY = 0;
 		trafficLightColor = Color.WHITE;
@@ -296,22 +294,19 @@ public class VTLApplication extends Application {
 		}
 
 		if (IPAddress.equals("0.0.0.0"))
-			IPAddress="192.168.49.1";
-		
-		
+			IPAddress = "192.168.49.1";
+
 		BROADCASTADDRESS = "192.168.49.255";
-		
-		
-		
+
 		if (getWiFIDirectIPAddress(true) != null) {
 
 			IPAddress = getWiFIDirectIPAddress(true);
 			if (IPAddress.equals("0.0.0.0"))
-				IPAddress="192.168.49.1";
+				IPAddress = "192.168.49.1";
 			Log.i(TAG, IPAddress);
-			//BROADCASTADDRESS = "255.255.255.255";
+			// BROADCASTADDRESS = "255.255.255.255";
 			/* gets ip in case its using wifi direct */
-			//BROADCASTADDRESS = "192.168.49.255";
+			// BROADCASTADDRESS = "192.168.49.255";
 
 		}
 
@@ -329,9 +324,9 @@ public class VTLApplication extends Application {
 			List<NetworkInterface> interfaces = Collections
 					.list(NetworkInterface.getNetworkInterfaces());
 			for (NetworkInterface intf : interfaces) {
-
-				if (intf.getName().equals("wlan0")
-						|| intf.getName().equals("p2p-wlan0-0"))
+				// intf.getName().equals("wlan0")
+				if (intf.getName().equals("p2p-wlan0-0")
+						|| intf.getName().equals("p2p0"))
 
 				{
 
@@ -440,29 +435,52 @@ public class VTLApplication extends Application {
 
 	}
 
-	private String findLane(Map map, double x, double y) {
+	private String findLane(Map map, double x, double y, boolean realLocations) {
+		if (realLocations) {
+			for (Edge edge : map.getEdges()) {
+				for (Lane lane : edge.getLanes()) {
 
-		for (Edge edge : map.getEdges()) {
-			for (Lane lane : edge.getLanes()) {
+					Point origin = lane.getShape().get(0);
+					Point end = lane.getShape().get(1);
 
-				Point origin = lane.getShape().get(0);
-				Point end = lane.getShape().get(1);
+					if (origin.getX() <= x && x <= end.getX()
+							&& origin.getY() <= y && y <= end.getY())
+						return lane.getId();
 
-				if (origin.getX() <= x && x <= end.getX() && origin.getY() <= y
-						&& y <= end.getY())
-					return lane.getId();
+					if (end.getX() <= x && x <= origin.getX()
+							&& end.getY() <= y && y <= origin.getY())
+						return lane.getId();
 
-				if (end.getX() <= x && x <= origin.getX() && end.getY() <= y
-						&& y <= origin.getY())
-					return lane.getId();
+				}
 
 			}
 
+			/* not found */
+			return null;
+		} else {
+
+			for (Edge edge : map.getEdges()) {
+				for (Lane lane : edge.getLanes()) {
+
+					Point origin = lane.getShape().get(0);
+					Point end = lane.getShape().get(1);
+
+					if (origin.getX() <= x && x <= end.getX()
+							&& origin.getY() <= y && y <= end.getY())
+						return lane.getId();
+
+					if (end.getX() <= x && x <= origin.getX()
+							&& end.getY() <= y && y <= origin.getY())
+						return lane.getId();
+
+				}
+
+			}
+
+			/* not found */
+			return null;
+
 		}
-
-		/* not found */
-		return null;
-
 	}
 
 	public String findJunctionByLaneId(String laneId) {
@@ -536,7 +554,7 @@ public class VTLApplication extends Application {
 
 	public void refreshParams(Point oldPoint, Point newPoint) {
 		directionAngle = getAngle(oldPoint, newPoint);
-		laneId = findLane(map, newPoint.getX(), newPoint.getY());
+		laneId = findLane(map, newPoint.getX(), newPoint.getY(), realLocations);
 		setJunctionAndPointByLaneId(laneId);
 		Log.i(TAG, "Direction Angle:" + directionAngle);
 
