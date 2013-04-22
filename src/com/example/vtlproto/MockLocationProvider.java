@@ -58,7 +58,7 @@ public class MockLocationProvider extends Thread{
 
 	    	try {
 
-	            Thread.sleep(1000);
+	            Thread.sleep(VTLApplication.SLEEPTIME_MOCKLOCATION);
 
 	        } catch (InterruptedException e) {
 

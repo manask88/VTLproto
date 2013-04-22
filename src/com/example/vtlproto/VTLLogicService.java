@@ -40,14 +40,7 @@ public class VTLLogicService {
 	private Context context;
 	Bundle bundle;
 
-	/*
-	 * Handler myUpdateHandler = new Handler() { public void
-	 * handleMessage(Message msg) { switch (msg.what) { case MSG_ID: TextView tv
-	 * = (TextView) findViewById(R.id.helloText); Toast.makeText(context,
-	 * "i got"+msg, Toast.LENGTH_SHORT).show(); tv.setText(msg);
-	 * 
-	 * break; default: break; } super.handleMessage(msg); } };
-	 */
+	
 
 	public VTLLogicService(Context context, Handler handler) {
 		Log.i(TAG, "Service: OnCreate");
@@ -538,8 +531,8 @@ public class VTLLogicService {
 
 		for (BeaconPacket beaconPacket : closeNeighbors) {
 
-			neighborIntersection = application
-					.findJunctionByLaneId(beaconPacket.getLaneId());
+			neighborIntersection = HelperFunctions
+					.findJunctionByLaneId(application.map,beaconPacket.getLaneId());
 
 			if (neighborIntersection != null
 					&& isConflictingDirection(beaconPacket.getDirectionAngle(),
@@ -581,15 +574,7 @@ public class VTLLogicService {
 					conflictLanes.add(nameValue);
 
 				}
-				/*
-				 * for (String conflictingLane : junction.getOutLanes()) {
-				 * 
-				 * NameValue nameValue = new NameValue();
-				 * nameValue.setName(conflictingLane);
-				 * conflictLanes.add(nameValue);
-				 * 
-				 * }
-				 */
+			
 			}
 
 		}
@@ -655,7 +640,7 @@ public class VTLLogicService {
 				// Send to multicast IP address and port
 				InetAddress address = InetAddress
 						.getByName(application.isBroadCastTX ? VTLApplication.BROADCASTADDRESS
-								: TimeSyncService.MULTICASTADDRESS);
+								: VTLApplication.MULTICASTADDRESS);
 				outPacket = new DatagramPacket(outBuf, outBuf.length, address,
 						VTLApplication.PORT);
 				socket.setBroadcast(application.isBroadCastTX);
@@ -733,7 +718,7 @@ public class VTLLogicService {
 				// Send to multicast IP address and port
 				InetAddress address = InetAddress
 						.getByName(application.isBroadCastTX ? VTLApplication.BROADCASTADDRESS
-								: TimeSyncService.MULTICASTADDRESS);
+								: VTLApplication.MULTICASTADDRESS);
 				outPacket = new DatagramPacket(outBuf, outBuf.length, address,
 						VTLApplication.PORT);
 				socket.setBroadcast(application.isBroadCastTX);

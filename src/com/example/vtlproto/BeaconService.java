@@ -18,7 +18,6 @@ import android.util.Log;
 
 public class BeaconService {
 
-	public static final String MULTICASTADDRESS = "224.2.2.3";
 
 	public static final String TAG = BeaconService.class.getSimpleName();
 
@@ -152,7 +151,7 @@ public class BeaconService {
 			try {
 				// Prepare to join multicast group
 				socket = new MulticastSocket(VTLApplication.PORT);
-				InetAddress address = InetAddress.getByName(MULTICASTADDRESS);
+				InetAddress address = InetAddress.getByName(VTLApplication.MULTICASTADDRESS);
 				socket.joinGroup(address);
 
 				while (runFlagListener) {
@@ -234,7 +233,7 @@ public class BeaconService {
 					// Send to multicast IP address and port
 					InetAddress address = InetAddress
 							.getByName(application.isBroadCastTX ? VTLApplication.BROADCASTADDRESS
-									: MULTICASTADDRESS);
+									: VTLApplication.MULTICASTADDRESS);
 					outPacket = new DatagramPacket(outBuf, outBuf.length,
 							address, VTLApplication.PORT);
 					socket.setBroadcast(application.isBroadCastTX);

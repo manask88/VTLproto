@@ -222,18 +222,7 @@ public class VTLActivity extends Activity implements LocationListener {
 
 	}
 
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		Log.i(TAG, "onDestroy");
 
-	}
-
-	@Override
-	protected void onStop() {
-		super.onStop();
-		Log.i(TAG, "onStop");
-	}
 
 	@Override
 	protected void onPause() {
@@ -474,9 +463,9 @@ public class VTLActivity extends Activity implements LocationListener {
 
 
 								/* for debug */
-								double flo = 0;
+								double distanceToIntersection = 0;
 								if (application.junctionId != null)
-									flo = HelperFunctions.getDistance(
+									distanceToIntersection = HelperFunctions.getDistance(
 											application.getCurrentPositionX(),
 											application.getCurrentPositionY(),
 											application.junctionPoint.getX(),
@@ -484,7 +473,7 @@ public class VTLActivity extends Activity implements LocationListener {
 
 								TextView tvMyDistanceToIntersection = (TextView) findViewById(R.id.tvMyDistanceToIntersection);
 								tvMyDistanceToIntersection.setText(String
-										.valueOf(flo));
+										.valueOf(distanceToIntersection));
 
 							}
 						});
@@ -524,9 +513,6 @@ public class VTLActivity extends Activity implements LocationListener {
 
 	
 
-	
-
-	
 	@Override
 	public void onProviderDisabled(String arg0) {
 		// TODO Auto-generated method stub
@@ -543,6 +529,21 @@ public class VTLActivity extends Activity implements LocationListener {
 	public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
 		// TODO Auto-generated method stub
 
+	}
+	
+	
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		Log.i(TAG, "onDestroy");
+
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		Log.i(TAG, "onStop");
 	}
 
 }
