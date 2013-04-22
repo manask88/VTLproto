@@ -104,7 +104,7 @@ public class Map {
 
 			for (int k = 0; k < pointsString.length; k++) {
 
-				Log.i(TAG, "got:" + pointsString[k]);
+				//Log.i(TAG, "got:" + pointsString[k]);
 				pointsString[k] = pointsString[k].replace("\"", "");
 				String[] pointString = pointsString[k].split(String
 						.valueOf(POINT_SEPARATOR));

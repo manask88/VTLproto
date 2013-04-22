@@ -1,6 +1,7 @@
 package com.example.vtlproto.model;
 
 import com.example.vtlproto.VTLApplication;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
 
@@ -48,6 +49,10 @@ public class BeaconPacket {
 	public BeaconPacket()
 	{
 		
+	}
+	
+	public LatLng getLatLng() {
+		return new LatLng(y,x);
 	}
 
 	public String getType() {

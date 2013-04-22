@@ -2,8 +2,7 @@ package com.example.vtlproto.model;
 
 public class Point {
 
-	private double x;
-	private double y;
+
 	private double longitude,latitude;
 	
 	public double getLongitude() {
@@ -22,11 +21,11 @@ public class Point {
 		this.latitude = latitude;
 	}
 
-	public Point(double x, double y)
+	public Point(double latitude, double longitude)
 	{
-		this.x=x;
-		this.y=y;
-		
+	
+		this.longitude=longitude;
+		this.latitude=latitude;
 		
 	}
 	public Point()
@@ -35,16 +34,18 @@ public class Point {
 	}
 	
 	public double getX() {
-		return x;
+		return longitude;
 	}
 	public void setX(double x) {
-		this.x = x;
+		this.longitude=x;
+	
 	}
 	public double getY() {
-		return y;
+		return latitude;
 	}
 	public void setY(double y) {
-		this.y = y;
+		this.latitude=y;
+	
 	}
 	
 }

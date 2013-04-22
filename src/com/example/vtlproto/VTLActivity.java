@@ -12,6 +12,7 @@ import java.util.HashMap;
 
 import com.example.vtlproto.R;
 import com.example.vtlproto.model.BeaconPacket;
+import com.example.vtlproto.model.CoordinatePair;
 import com.example.vtlproto.model.NameValue;
 import com.example.vtlproto.model.Point;
 import com.example.vtlproto.model.TrafficLightPacket;
@@ -45,16 +46,20 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.GroundOverlay;
+import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 public class VTLActivity extends Activity implements LocationListener {
 
 	public final static String TAG = VTLActivity.class.getSimpleName();
 	public final static int SQUARESIZE = 50;
 	public final static int SQUAREMARGIN = 13;
-	private Button buttonLeft, buttonRight, buttonUp, buttonDown, buttonStart,
+	private Button buttonStartV, buttonStartH, buttonStart,
 			trafficLight;
 	boolean shouldDraw = false;
 	private Context context = this;
@@ -71,11 +76,10 @@ public class VTLActivity extends Activity implements LocationListener {
 	Boolean servicesStatus;
 	VTLLogicService VTLLogicService;
 	public LocationManager locationManager;
-	private GoogleMap map;
 	static final LatLng HAMBURG = new LatLng(53.558, 9.927);
 	static final LatLng KIEL = new LatLng(53.551, 9.993);
 	static final LatLng intersection = new LatLng(40.440444, -79.942161);
-	Marker mylocation,marker1,marker2,marker3,marker4;
+	public Marker mylocation, marker1, marker2, marker3, marker4, marker5;
 
 	public float gradeMinSecTograde(float grade, float min, float seconds) {
 
@@ -90,29 +94,20 @@ public class VTLActivity extends Activity implements LocationListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		application = (VTLApplication) this.getApplication();
 
-		map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map))
-				.getMap();
+		application.googleMap = ((MapFragment) getFragmentManager()
+				.findFragmentById(R.id.map)).getMap();
 
-		/*
-		 * Marker hamburg = map.addMarker(new
-		 * MarkerOptions().position(intersection) .title("Hamburg"));
-		 */
-		/*
-		 * Marker kiel = map.addMarker(new MarkerOptions() .position(KIEL)
-		 * .title("Kiel") .snippet("Kiel is cool") .icon(BitmapDescriptorFactory
-		 * .fromResource(R.drawable.ic_launcher)));
-		 */
-		// Move the camera instantly to hamburg with a zoom of 15.
-		map.moveCamera(CameraUpdateFactory.newLatLngZoom(intersection, 20));
-		UiSettings uiSettings = map.getUiSettings();
-		//uiSettings.setAllGesturesEnabled(false);
-		//uiSettings.setZoomControlsEnabled(false);
+	
+		application.googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+				intersection, 25));
+		UiSettings uiSettings = application.googleMap.getUiSettings();
+		// uiSettings.setAllGesturesEnabled(false);
+		// uiSettings.setZoomControlsEnabled(false);
 
 		// Zoom in, animating the camera.
 		// map.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
-
-		application = (VTLApplication) this.getApplication();
 
 		locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 		boolean enabled = locationManager
@@ -126,8 +121,42 @@ public class VTLActivity extends Activity implements LocationListener {
 		 * Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
 		 * startActivity(intent); }
 		 */
+		/*mock coordinates*/
+		  locationManager.addTestProvider(LocationManager.GPS_PROVIDER, false, false,
+		            false, false, true, true, true, 0, 5);
+		    locationManager.setTestProviderEnabled(LocationManager.GPS_PROVIDER, true);
+		    
+		    
+		 
+		
+		  
+		  buttonStartV = (Button) findViewById(R.id.buttonMochV);
+			buttonStartH = (Button) findViewById(R.id.buttonMochH);
+			buttonStartH.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
 
-		application.hashMapNeighbors = new HashMap<String, BeaconPacket>(
+				    new MockLocationProvider(locationManager, LocationManager.GPS_PROVIDER, "horizontal.txt",context).start();
+
+				}
+			});
+		  
+			
+			
+			
+			buttonStartV.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+
+				    new MockLocationProvider(locationManager, LocationManager.GPS_PROVIDER, "vertical.txt",context).start();
+
+				}
+			});
+		  
+		  
+		  
+		  
+		  
+		  /*end mock coordinates*/
+		  application.hashMapNeighbors = new HashMap<String, BeaconPacket>(
 				VTLApplication.MAX_NEIGHBORS);
 		numNeighbors = 0;
 		runTimeThread();
@@ -145,36 +174,16 @@ public class VTLActivity extends Activity implements LocationListener {
 		tvLong = (TextView) this.findViewById(R.id.tvLong);
 		tvAngle = (TextView) this.findViewById(R.id.tvAngle);
 
-		/*
-		 * imageView = (ImageView) this.findViewById(R.id.imageView);
-		 * 
-		 * bitmap = Bitmap.createBitmap((int) 600, 600,
-		 * Bitmap.Config.ARGB_8888); canvas = new Canvas(bitmap);
-		 * imageView.setImageBitmap(bitmap); for (int i = 0; i <
-		 * VTLApplication.SIZEY; i++) for (int j = 0; j < VTLApplication.SIZEX;
-		 * j++) {
-		 * 
-		 * resetSquare(j, VTLApplication.SIZEY - 1 - i);
-		 * 
-		 * } drawSquare((int) application.getCurrentPositionX(), (int)
-		 * application.getCurrentPositionY(), Color.BLUE);
-		 */
+		
 		buttonStart = (Button) findViewById(R.id.buttonStart);
-		buttonDown = (Button) findViewById(R.id.buttonDown);
-		buttonUp = (Button) findViewById(R.id.buttonUp);
-		buttonLeft = (Button) findViewById(R.id.buttonLeft);
-		buttonRight = (Button) findViewById(R.id.buttonRight);
-		/*
-		 * buttonTest = (Button) findViewById(R.id.buttonTest);
-		 * 
-		 * buttonTest.setOnClickListener(new View.OnClickListener() { public
-		 * void onClick(View v) { Intent serviceIntent = new Intent(context,
-		 * SendUnicastService.class);
-		 * serviceIntent.putExtra(SendUnicastService.EXTRAS_DST_IP,
-		 * "10.20.1.144"); // serviceIntent.setAction("something"); Log.i(TAG,
-		 * "trying to start FileTransferService");
-		 * context.startService(serviceIntent); } });
-		 */
+		
+		
+		
+
+		
+		
+		
+		TimeSyncService timeSync = new TimeSyncService(context);
 
 		beaconService = new BeaconService(context, beconServiceHandler);
 		VTLLogicService = new VTLLogicService(context, VTLLogicServiceHandler);
@@ -195,46 +204,7 @@ public class VTLActivity extends Activity implements LocationListener {
 			}
 		});
 
-		/*
-		 * buttonDown.setOnClickListener(new View.OnClickListener() { public
-		 * void onClick(View v) {
-		 * 
-		 * shouldDraw = true;
-		 * 
-		 * // Log.i(VTLActivity.TAG, "Go down"); resetSquare((int)
-		 * application.getCurrentPositionX(), (int)
-		 * application.getCurrentPositionY());
-		 * tvCurrentY.setText(String.valueOf(application.decCurrentY()));
-		 * drawSquare((int) application.getCurrentPositionX(), (int)
-		 * application.getCurrentPositionY(), Color.BLUE);
-		 * 
-		 * } });
-		 * 
-		 * buttonUp.setOnClickListener(new View.OnClickListener() { public void
-		 * onClick(View v) { // Log.i(VTLActivity.TAG, "Go up");
-		 * resetSquare((int) application.getCurrentPositionX(), (int)
-		 * application.getCurrentPositionY());
-		 * tvCurrentY.setText(String.valueOf(application.incCurrentY()));
-		 * drawSquare((int) application.getCurrentPositionX(), (int)
-		 * application.getCurrentPositionY(), Color.BLUE); } });
-		 * buttonLeft.setOnClickListener(new View.OnClickListener() { public
-		 * void onClick(View v) { // Log.i(VTLActivity.TAG, "Go left");
-		 * resetSquare((int) application.getCurrentPositionX(), (int)
-		 * application.getCurrentPositionY());
-		 * tvCurrentX.setText(String.valueOf(application.decCurrentX()));
-		 * drawSquare((int) application.getCurrentPositionX(), (int)
-		 * application.getCurrentPositionY(), Color.BLUE);
-		 * 
-		 * } }); buttonRight.setOnClickListener(new View.OnClickListener() {
-		 * public void onClick(View v) { // Log.i(VTLActivity.TAG, "Go right");
-		 * resetSquare((int) application.getCurrentPositionX(), (int)
-		 * application.getCurrentPositionY());
-		 * tvCurrentX.setText(String.valueOf(application.incCurrentX()));
-		 * drawSquare((int) application.getCurrentPositionX(), (int)
-		 * application.getCurrentPositionY(), Color.BLUE);
-		 * 
-		 * } });
-		 */
+		
 		Location lastLocation = locationManager
 				.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		if (lastLocation != null)
@@ -243,28 +213,7 @@ public class VTLActivity extends Activity implements LocationListener {
 				100, 1, this);
 	}
 
-	/*
-	 * public void drawSquare(int x, int y, int color) {
-	 * 
-	 * Paint paint = new Paint(); paint.setColor(color);
-	 * paint.setStyle(Paint.Style.FILL_AND_STROKE); paint.setStrokeWidth(10);
-	 * 
-	 * int productx = (x) * SQUARESIZE; int producty = (VTLApplication.SIZEY - 1
-	 * - y) * SQUARESIZE; canvas.drawRect(productx + SQUAREMARGIN, producty +
-	 * SQUAREMARGIN + VTLApplication.OFFSETY, productx + SQUARESIZE, producty +
-	 * SQUARESIZE + VTLApplication.OFFSETY, paint);
-	 * imageView.setImageBitmap(bitmap); }
-	 * 
-	 * public void resetSquare(int x, int y) {
-	 * 
-	 * // Log.i(VTLActivity.TAG, "j: " + x + " i:" + (VTLApplication.SIZEY - 1 -
-	 * y));
-	 * 
-	 * if (VTLApplication.ROAD_MATRIX[VTLApplication.SIZEY - 1 - y][x])
-	 * drawSquare(x, y, Color.GRAY); else drawSquare(x, y, Color.GREEN);
-	 * 
-	 * }
-	 */
+	
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -351,39 +300,28 @@ public class VTLActivity extends Activity implements LocationListener {
 						Log.i(TAG, "got:" + IPAddress);
 						beaconPacket
 								.setColor(VTLApplication.COLORS[numNeighbors]);
-						Marker marker = map.addMarker(new MarkerOptions()
-								.position(latLng).title(
-										beaconPacket.getIPAdress()));
+						Marker marker = application.googleMap
+								.addMarker(new MarkerOptions().position(latLng)
+										.title(beaconPacket.getIPAdress()));
 						beaconPacket.setMarker(marker);
 						application.hashMapNeighbors.put(IPAddress,
 								beaconPacket);
 						numNeighbors++;
 					} else {
-						/* to reset last position */
-						/*
-						 * resetSquare( (int) application.hashMapNeighbors.get(
-						 * IPAddress).getX(), (int)
-						 * application.hashMapNeighbors.get( IPAddress).getY());
-						 * beaconPacket
-						 * .setColor(application.hashMapNeighbors.get(
-						 * IPAddress).getColor());
-						 */
+						
 
 						Marker marker = application.hashMapNeighbors.get(
 								IPAddress).getMarker();
 						marker.remove();
-						// marker.setPosition(latLng);
-						marker = map.addMarker(new MarkerOptions().position(
-								latLng).title(beaconPacket.getIPAdress()));
+						marker = application.googleMap
+								.addMarker(new MarkerOptions().position(latLng)
+										.title(beaconPacket.getIPAdress()));
 						beaconPacket.setMarker(marker);
 						application.hashMapNeighbors.put(IPAddress,
 								beaconPacket);
 
 					}
-					/*
-					 * drawSquare((int) beaconPacket.getX(), (int)
-					 * beaconPacket.getY(), beaconPacket.getColor());
-					 */
+			
 
 					break;
 				}
@@ -410,22 +348,12 @@ public class VTLActivity extends Activity implements LocationListener {
 				}
 
 				case VTLApplication.MSG_TYPE_LIGHT_STATUS: {
-					// if (true)
-					// if (application.conflictDetected &&
-					// application.waitingForLeaderMessage)
-					// Log.i(TAG,"got a S packet:"+text);
+	
 					{
 						TrafficLightPacket trafficLightPacket = new TrafficLightPacket(
 								text);
 
-						/*
-						 * Log.i(TAG,"wih timer"+trafficLightPacket.getTimer());
-						 * Log
-						 * .i(TAG,"laneid0:"+trafficLightPacket.getStatusLaneIds
-						 * ().get(0).getName());
-						 * Log.i(TAG,"status0:"+trafficLightPacket
-						 * .getStatusLaneIds().get(0).getCharValue());
-						 */
+					
 						application.timeLeftForCurrentStatus = Integer
 								.valueOf(trafficLightPacket.getTimer());
 						for (NameValue statusLaneId : trafficLightPacket
@@ -439,10 +367,7 @@ public class VTLActivity extends Activity implements LocationListener {
 									application.trafficLightColor = Color.GREEN;
 									trafficLight
 											.setBackgroundColor(application.trafficLightColor);
-									// application.waitingForLeaderMessage =
-									// false;
-									// Log.d(TAG,
-									// "got green light message from leader");
+									
 									break;
 								}
 								case VTLApplication.MSG_LIGHT_STATUS_RED: {
@@ -451,12 +376,7 @@ public class VTLActivity extends Activity implements LocationListener {
 									trafficLight
 											.setBackgroundColor(application.trafficLightColor);
 
-									// Log.d(TAG,
-									// "got red light message from leader");
-
-									// application.waitingForLeaderMessage =
-									// false;
-
+								
 									break;
 								}
 								}
@@ -467,13 +387,9 @@ public class VTLActivity extends Activity implements LocationListener {
 
 					}
 
-					// break;
 				}
 
-					// Toast.makeText(context,
-					// "i got"+msg.getData().getString("Message"),
-					// Toast.LENGTH_SHORT).show();
-
+				
 					break;
 				}
 			default:
@@ -500,11 +416,7 @@ public class VTLActivity extends Activity implements LocationListener {
 				break;
 			}
 			case VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS: {
-				TextView tvClosestCarToIntersection = (TextView) findViewById(R.id.tvClosestCarToIntersection);
-				String textClosestCarToIntersection = msg.getData().getString(
-						"closestCarToIntersection");
-				tvClosestCarToIntersection
-						.setText(textClosestCarToIntersection);
+		
 
 				trafficLight.setBackgroundColor(application.trafficLightColor);
 
@@ -527,6 +439,16 @@ public class VTLActivity extends Activity implements LocationListener {
 
 				break;
 			}
+			
+			case VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_VTL_LEADER: {
+				TextView tvClosestCarToIntersection = (TextView) findViewById(R.id.tvClosestCarToIntersection);
+				String textClosestCarToIntersection = msg.getData().getString(
+						"closestCarToIntersection");
+				tvClosestCarToIntersection
+						.setText(textClosestCarToIntersection);
+
+				break;
+			}
 
 			default:
 				break;
@@ -546,21 +468,15 @@ public class VTLActivity extends Activity implements LocationListener {
 							@Override
 							public void run() {
 
-								/*
-								 * drawSquare( (int)
-								 * application.getCurrentPositionX(), (int)
-								 * application.getCurrentPositionY(),
-								 * Color.BLUE);
-								 */
+								
 
 								tvTime.setText(application.getTimeDisplay());
 
-								// tvTime.setText(date.getHours()+":"+date.getMinutes()+date.getSeconds()+date.getTime()%1000);
 
 								/* for debug */
 								double flo = 0;
 								if (application.junctionId != null)
-									flo = VTLLogicService.getDistance(
+									flo = HelperFunctions.getDistance(
 											application.getCurrentPositionX(),
 											application.getCurrentPositionY(),
 											application.junctionPoint.getX(),
@@ -583,22 +499,15 @@ public class VTLActivity extends Activity implements LocationListener {
 
 	@Override
 	public void onLocationChanged(Location location) {
-		// TODO Auto-generated method stub
-		// lDateTime=location.g;
+
 		tvLat.setText("Lat:" + location.getLatitude());
 		tvLong.setText("Long:" + location.getLongitude());
-		Point point = new Point();
-		point.setLongitude(location.getLongitude());
-		point.setLatitude(location.getLatitude());
+	
 
-		Point point2 = new Point();
-		point2.setLongitude(application.getCurrentPositionX());
-		point2.setLatitude(application.getCurrentPositionY());
-		application.directionAngle=bearing(point2,point);
+	
 		application.setCurrentPosition(location);
-		tvCurrentX.setText(location.getLatitude() + "");
-		tvCurrentY.setText(location.getLongitude() + "");
-		//application.directionAngle = location.getBearing();
+		tvCurrentX.setText(location.getLongitude() + "");
+		tvCurrentY.setText(location.getLatitude() + "");
 		tvAngle.setText(application.directionAngle + "");
 
 		LatLng newLoc = new LatLng(location.getLatitude(),
@@ -606,122 +515,18 @@ public class VTLActivity extends Activity implements LocationListener {
 		if (mylocation != null)
 			mylocation.remove();
 
-		mylocation = map.addMarker(new MarkerOptions().position(newLoc).title(
-				"MyLoc"));
+		mylocation = application.googleMap.addMarker(new MarkerOptions()
+				.position(newLoc).title("MyLoc"));
 
- 
-		// map.moveCamera(CameraUpdateFactory.newLatLngZoom(newLoc, 20));
-		
-		
-		LatLng newlocation = new LatLng(y1 + yS,
-				x1 - xS);
-		if (marker1 != null)
-			marker1.remove();
-
-	marker1 = map.addMarker(new MarkerOptions().position(newlocation).title(
-				"MyLoc"));
-		
-		
-	newlocation = new LatLng(y1 - yS,
-			x1 + xS);
-	if (marker2 != null)
-		marker2.remove();
-
-marker2 = map.addMarker(new MarkerOptions().position(newlocation).title(
-			"MyLoc"));
-
-newlocation = new LatLng(y2 - yS,
-		x2 + xS);
-if (marker3 != null)
-	marker3.remove();
-
-marker3 = map.addMarker(new MarkerOptions().position(newlocation).title(
-		"MyLoc"));
 		
 
-newlocation = new LatLng(y2 + yS,
-		x2 - xS);
-if (marker4 != null)
-	marker4.remove();
-
-marker4 = map.addMarker(new MarkerOptions().position(newlocation).title(
-		"MyLoc"));
 	}
 
 	
+
 	
+
 	
-	
-	public static 	ArrayList<Point>	obtainRectangleCoordinates( Point point1, Point point2,double thickness)
-	
-	{double width,x2,x1,y1,y2,height,length,xS,yS;
-	y1=point2.getLatitude();
-	x1=point2.getLongitude();
-	y2=point1.getLatitude();
-	x2=point1.getLongitude();
-	thickness=0.00010;
-	width = x2 - x1;
-
-	height = y2 - y1;
-	//To find the length of the line, use Pythagoras's theorem:
-
-	length = Math.sqrt(width * width + height * height);
-
-		//	Now the x shift (let's call it xS):
-
-			xS = (thickness * height / length) / 2;
-
-			yS = (thickness * width / length) / 2;
-			
-		//	Now you have the x shift and y shift.
-
-			
-			Point coord1,coord2,coord3,coord4;
-			coord1=new Point();
-			coord1.setLatitude(y1 + yS);
-			coord1.setLongitude(x1 - xS);
-			coord2=new Point();
-			coord2.setLatitude(y1 - yS);
-			coord2.setLongitude(x1 + xS);
-			coord3=new Point();
-			coord3.setLatitude(y2 - yS);
-			coord3.setLongitude(x2 + xS);
-			coord4=new Point();
-			coord4.setLatitude(y2 + yS);
-			coord4.setLongitude(x2 - xS);
-
-			
-	
-/*	First coordinate is: (x1 - xS, y1 + yS)
-
-			Second: (x1 + xS, y1 - yS)
-
-			Third: (x2 + xS, y2 - yS)
-
-			Fourth: (x2 - xS, y2 + yS)*/}
-	
-	  public static float bearing(Point p1, Point p2) {
-		  int MILLION = 1000000;
-	        double lat1 = p1.getLatitude()  ;
-	        double lon1 = p1.getLongitude() ;
-	        double lat2 = p2.getLatitude()  ;
-	        double lon2 = p2.getLongitude()  ;
-
-	        return bearing(lat1, lon1, lat2, lon2);
-	    }
-	
-	  protected static float bearing(double lat1, double lon1, double lat2, double lon2){
-		  double longitude1 = lon1;
-		  double longitude2 = lon2;
-		  double latitude1 = Math.toRadians(lat1);
-		  double latitude2 = Math.toRadians(lat2);
-		  double longDiff= Math.toRadians(longitude2-longitude1);
-		  double y= Math.sin(longDiff)*Math.cos(latitude2);
-		  double x=Math.cos(latitude1)*Math.sin(latitude2)-Math.sin(latitude1)*Math.cos(latitude2)*Math.cos(longDiff);
-
-		  return (float)(Math.toDegrees(Math.atan2(y, x))+360)%360;
-		}
-
 	@Override
 	public void onProviderDisabled(String arg0) {
 		// TODO Auto-generated method stub

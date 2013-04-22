@@ -13,6 +13,7 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.nio.channels.Channel;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -27,6 +28,14 @@ import com.example.vtlproto.model.map.Edge;
 import com.example.vtlproto.model.map.Junction;
 import com.example.vtlproto.model.map.Lane;
 import com.example.vtlproto.model.map.Map;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.GroundOverlay;
+import com.google.android.gms.maps.model.GroundOverlayOptions;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import android.app.Application;
 import android.content.Context;
@@ -43,6 +52,7 @@ import android.net.wifi.WifiManager.MulticastLock;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.text.format.Time;
 import android.util.Log;
@@ -120,12 +130,12 @@ public class VTLApplication extends Application {
 	public final static int PORT_2 = 8889;
 	public boolean isBroadCastTX;
 	public static final int SLEEPTIME_SEND = 100;
-	public static final int SLEEPTIME_RECEIVE = 100;
+	public static final int SLEEPTIME_RECEIVE = 25;
 	public final static int SLEEPTIME_VTLSTATUS = 1000;
 
-	public static final int SLEEPTIME_CONFLICTDETECTION = 1000;
+	public static final int SLEEPTIME_CONFLICTDETECTION = 500;
 	public static String BROADCASTADDRESS;
-	public static final int DISTANCE_CLOSE = 10;
+	public static final int DISTANCE_CLOSEX = 10;
 	public static final int DISTANCE_SAME_INTERSECTION = 2;
 
 	public final static int MAX_NEIGHBORS = 4;
@@ -141,6 +151,7 @@ public class VTLApplication extends Application {
 	public final static int VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS = 3;
 	public final static int VTLLOGICSERVICE_HANDLER_NEW_DISTANCE = 4;
 	public static final int VTLLOGICSERVICE_HANDLER_NEW_CLUSTER_LEADER = 5;
+	public static final int VTLLOGICSERVICE_HANDLER_NEW_VTL_LEADER = 6;
 
 	public final static char MSG_SEPARATOR = ',';
 	public final static char MSG_TYPE_BEACON = 'B';
@@ -151,11 +162,14 @@ public class VTLApplication extends Application {
 	public final static char MSG_LIGHT_STATUS_GREEN = 'G';
 	public final static char MSG_LIGHT_STATUS_RED = 'R';
 
+	public static final long SLEEPTIME_TIMESYNC = 1000 * 60 * 5;
+
+	public long timeDifference;
 	public String IPAddress;
 	public int trafficLightColor;
 	public Point junctionPoint;
 	public HashMap<String, BeaconPacket> hashMapNeighbors;
-	public BeaconService beaconService;
+	public TimeSyncService beaconService;
 	public CloseCar clusterLeader = null;
 	public boolean beaconServiceStatus = false;
 	public boolean conflictDetected = false;
@@ -167,8 +181,13 @@ public class VTLApplication extends Application {
 	public String junctionId, laneId;
 	public float directionAngle;
 	public Map map;
+	public GoogleMap googleMap;
 	private OutputStreamWriter outWriter;
 	private FileOutputStream fileOut;
+	public Marker mylocation, marker1, marker2, marker3, marker4, marker5,
+			marker6;
+
+	GroundOverlay groundOverlay;
 
 	public double getCurrentPositionX() {
 		return currentPositionX;
@@ -178,71 +197,24 @@ public class VTLApplication extends Application {
 		return currentPositionY;
 	}
 
-	public double incCurrentX() {
-		setCurrentPosition(new Point(currentPositionX + 1, currentPositionY));
-		return currentPositionX;
-	}
 
-	public double incCurrentY() {
-		setCurrentPosition(new Point(currentPositionX, currentPositionY + 1));
-		return currentPositionY;
-	}
-
-	public double decCurrentX() {
-		setCurrentPosition(new Point(currentPositionX - 1, currentPositionY));
-		return currentPositionX;
-	}
-
-	public double decCurrentY() {
-		setCurrentPosition(new Point(currentPositionX, currentPositionY - 1));
-		return currentPositionY;
-	}
-
-	public void setCurrentPosition(Point newPoint) {
-
-		Point oldPoint = new Point(currentPositionX, currentPositionY);
-		setCurrentPositionY(newPoint.getY());
-		setCurrentPositionX(newPoint.getX());
-
-		if (oldPoint.getX() != newPoint.getX()
-				|| oldPoint.getY() != newPoint.getY())
-			refreshParams(oldPoint, newPoint);
-
-	}
 
 	public void setCurrentPosition(Location location) {
 
+		Point oldPoint = new Point(currentPositionY,currentPositionX);
+		Point newPoint = new Point(location.getLatitude(),location.getLongitude());
 		currentPositionX = location.getLongitude();
 		currentPositionY = location.getLatitude();
-
+		refreshParams(oldPoint, newPoint);
 	}
 
-	public void setCurrentPositionY(double newPositionY) {
-		if ((newPositionY < SIZEY)
-				&& (newPositionY >= 0)
-				&& (ROAD_MATRIX[(int) (SIZEY - 1 - newPositionY)][(int) currentPositionX])) {
-			Log.d(TAG, "j : " + currentPositionX + " i: "
-					+ (SIZEY - 1 - newPositionY));
 
-			currentPositionY = newPositionY;
-
-		}
-	}
-
-	public void setCurrentPositionX(double newPositionX) {
-		if ((newPositionX < SIZEX)
-				&& (newPositionX >= 0)
-				&& (ROAD_MATRIX[(int) (SIZEY - 1 - currentPositionY)][(int) newPositionX])) {
-			Log.d(TAG, "j : " + newPositionX + " i: "
-					+ (SIZEY - 1 - currentPositionY));
-
-			currentPositionX = newPositionX;
-		}
-	}
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
+
+		Log.i(TAG, "onCreate");
 
 		AssetManager assetManager = getAssets();
 		InputStream inputStream = null;
@@ -293,16 +265,17 @@ public class VTLApplication extends Application {
 
 		}
 
-		if (IPAddress.equals("0.0.0.0"))
-			IPAddress = "192.168.49.1";
-
-		BROADCASTADDRESS = "192.168.49.255";
+		/*
+		 * if (IPAddress == null || IPAddress.equals("0.0.0.0")) IPAddress =
+		 * "192.168.49.1";
+		 */
 
 		if (getWiFIDirectIPAddress(true) != null) {
 
 			IPAddress = getWiFIDirectIPAddress(true);
-			if (IPAddress.equals("0.0.0.0"))
+			if (IPAddress == null || IPAddress.equals("0.0.0.0"))
 				IPAddress = "192.168.49.1";
+			BROADCASTADDRESS = "192.168.49.255";
 			Log.i(TAG, IPAddress);
 			// BROADCASTADDRESS = "255.255.255.255";
 			/* gets ip in case its using wifi direct */
@@ -386,73 +359,208 @@ public class VTLApplication extends Application {
 		return outputStream.toString();
 	}
 
-	private void setBooleanMap(Map map) {
-
-		for (Edge edge : map.getEdges()) {
-			for (Lane lane : edge.getLanes()) {
-
-				Point origin = lane.getShape().get(0);
-				Point end = lane.getShape().get(1);
-
-				// Log.i(TAG, "origin:x:" + origin.getX() + ",y:" +
-				// origin.getY());
-				// Log.i(TAG, "end:x:" + end.getX() + ",y:" + end.getY());
-
-				double distanceX = end.getX() - origin.getX();
-				double distanceY = end.getY() - origin.getY();
-
-				double length = lane.getLength();
-
-				for (double i = 0; i <= length; i++) {
-					double x, y;
-					if (distanceX >= 0)
-						x = origin.getX() + i * distanceX / length;
-					else
-						x = end.getX() + i * -distanceX / length;
-
-					if (distanceY >= 0)
-						y = origin.getY() + i * distanceY / length;
-					else
-						y = end.getY() + i * -distanceY / length;
-					// Log.i(TAG, "trying to access ceel x:" + x + ",y" + y);
-
-					ROAD_MATRIX[(int) (x)][(int) getIfromY(y)] = true;
-
-				}
-
-			}
-
-		}
-
-		for (Junction junction : map.getJunctions()) {
-			for (Point point : junction.getShape()) {
-
-				ROAD_MATRIX[(int) (point.getX())][(int) getIfromY(point.getY())] = true;
-
-			}
-
-		}
-
-	}
 
 	private String findLane(Map map, double x, double y, boolean realLocations) {
+		LatLng newPointLocation = new LatLng(y, x);
+		//Log.i(TAG, "lat:" + y + "log" + x);
 		if (realLocations) {
 			for (Edge edge : map.getEdges()) {
+				
+				if (edge.getAngle()-45<directionAngle && directionAngle<edge.getAngle()+45)
+				
+				{
 				for (Lane lane : edge.getLanes()) {
 
 					Point origin = lane.getShape().get(0);
 					Point end = lane.getShape().get(1);
+					
+					ArrayList<Point> points = HelperFunctions.obtainRectangleCoordinates(origin, end, 0.0001);
 
-					if (origin.getX() <= x && x <= end.getX()
-							&& origin.getY() <= y && y <= end.getY())
-						return lane.getId();
+					if (points.size() > 3) {
 
-					if (end.getX() <= x && x <= origin.getX()
-							&& end.getY() <= y && y <= origin.getY())
-						return lane.getId();
+
+						LatLng newlocation;
+					/*	LatLng newlocation = new LatLng(points.get(0)
+								.getLatitude(), points.get(0)
+								.getLongitude());
+*/
+
+					/*	marker1 = googleMap
+								.addMarker(new MarkerOptions()
+										.position(newlocation).title(
+												"MyLoc"));
+						newlocation = new LatLng(points.get(1)
+								.getLatitude(), points.get(1)
+								.getLongitude());
+
+				
+
+						marker2 = googleMap
+								.addMarker(new MarkerOptions()
+										.position(newlocation).title(
+												"MyLoc"));
+						newlocation = new LatLng(points.get(2)
+								.getLatitude(), points.get(2)
+								.getLongitude());
+					
+
+						marker3 = googleMap
+								.addMarker(new MarkerOptions()
+										.position(newlocation).title(
+												"MyLoc"));
+						newlocation = new LatLng(points.get(3)
+								.getLatitude(), points.get(3)
+								.getLongitude());
+				
+						marker4 = googleMap
+								.addMarker(new MarkerOptions()
+										.position(newlocation).title(
+												"MyLoc"));	*/
+				/*		newlocation = new LatLng(end.getLatitude(),
+								end.getLongitude());
+				
+
+						marker5 = googleMap
+								.addMarker(new MarkerOptions()
+										.position(newlocation).title(
+												"MyLoc"));
+
+						newlocation = new LatLng(origin.getLatitude(),
+								origin.getLongitude());
+
+					
+
+						marker6 = googleMap
+								.addMarker(new MarkerOptions()
+										.position(newlocation).title(
+												"MyLoc"));*/
+						
+						
+						ArrayList<Point> pointsNorthEastAndSouthWest = HelperFunctions
+								.getNorthEastAndSouthWest(points);
+						
+					
+					
+						
+						
+						if (pointsNorthEastAndSouthWest == null) {
+
+							Log.e(TAG, "pointsNorthEastAndSouthWest is null");
+
+						} else {
+							Log.i(TAG, "laneid:"+lane.getId());
+							Log.e(TAG, "pointsNorthEastAndSouthWest is ok");
+							
+						
+							
+							newlocation = new LatLng(pointsNorthEastAndSouthWest.get(0)
+									.getLatitude(), pointsNorthEastAndSouthWest.get(0)
+									.getLongitude());
+							
+						/*	marker1 = googleMap
+									.addMarker(new MarkerOptions()
+											.position(newlocation).title(
+													"MyLoc"));
+							newlocation = new LatLng(pointsNorthEastAndSouthWest.get(1)
+									.getLatitude(), pointsNorthEastAndSouthWest.get(1)
+									.getLongitude());
+
+					
+
+							marker2 = googleMap
+									.addMarker(new MarkerOptions()
+											.position(newlocation).title(
+													"MyLoc"));*/
+							
+							LatLngBounds rectangle = new LatLngBounds(
+									new LatLng(pointsNorthEastAndSouthWest.get(
+											1).getLatitude(),
+											pointsNorthEastAndSouthWest.get(1)
+													.getLongitude()),
+									new LatLng(pointsNorthEastAndSouthWest.get(
+											0).getLatitude(),
+											pointsNorthEastAndSouthWest.get(0)
+													.getLongitude()));
+							if (rectangle.contains(newPointLocation))
+
+							{
+								
+								
+							/*	LatLng newlocation = new LatLng(points.get(0)
+										.getLatitude(), points.get(0)
+										.getLongitude());
+
+								if (marker1 != null)
+									marker1.remove();
+
+								marker1 = googleMap
+										.addMarker(new MarkerOptions()
+												.position(newlocation).title(
+														"MyLoc"));
+								newlocation = new LatLng(points.get(1)
+										.getLatitude(), points.get(1)
+										.getLongitude());
+
+								if (marker2 != null)
+									marker2.remove();
+
+								marker2 = googleMap
+										.addMarker(new MarkerOptions()
+												.position(newlocation).title(
+														"MyLoc"));
+								newlocation = new LatLng(points.get(2)
+										.getLatitude(), points.get(2)
+										.getLongitude());
+								if (marker3 != null)
+									marker3.remove();
+
+								marker3 = googleMap
+										.addMarker(new MarkerOptions()
+												.position(newlocation).title(
+														"MyLoc"));
+								newlocation = new LatLng(points.get(3)
+										.getLatitude(), points.get(3)
+										.getLongitude());
+								if (marker4 != null)
+									marker4.remove();
+
+								marker4 = googleMap
+										.addMarker(new MarkerOptions()
+												.position(newlocation).title(
+														"MyLoc"));
+								newlocation = new LatLng(end.getLatitude(),
+										end.getLongitude());
+								if (marker5 != null)
+									marker5.remove();
+
+								marker5 = googleMap
+										.addMarker(new MarkerOptions()
+												.position(newlocation).title(
+														"MyLoc"));
+
+								newlocation = new LatLng(origin.getLatitude(),
+										origin.getLongitude());
+
+								if (marker6 != null)
+									marker6.remove();
+
+								marker6 = googleMap
+										.addMarker(new MarkerOptions()
+												.position(newlocation).title(
+														"MyLoc"));*/
+
+								return lane.getId();
+							}
+							
+						}
+						
+					}
 
 				}
 
+				
+				
+			}
 			}
 
 			/* not found */
@@ -532,28 +640,10 @@ public class VTLApplication extends Application {
 
 	}
 
-	public float getAngle(Point oldPoint, Point newPoint) {
-		float angle = (float) Math.toDegrees(Math.atan2(newPoint.getX()
-				- oldPoint.getX(), newPoint.getY() - oldPoint.getY()));
 
-		/*
-		 * float angle = (float) Math.toDegrees(Math.atan2(oldPoint.getX() -
-		 * newPoint.getX(), oldPoint.getY() - newPoint.getY()));
-		 */
-
-		if (angle < 0) {
-			angle += 360;
-		}
-
-		angle = 360 - angle + 90;
-
-		if (angle >= 360)
-			angle = angle - 360;
-		return angle;
-	}
 
 	public void refreshParams(Point oldPoint, Point newPoint) {
-		directionAngle = getAngle(oldPoint, newPoint);
+		directionAngle = HelperFunctions.bearing(oldPoint, newPoint);
 		laneId = findLane(map, newPoint.getX(), newPoint.getY(), realLocations);
 		setJunctionAndPointByLaneId(laneId);
 		Log.i(TAG, "Direction Angle:" + directionAngle);
@@ -563,20 +653,17 @@ public class VTLApplication extends Application {
 	public String getTimeDisplay() {
 
 		String stringTime = new SimpleDateFormat("H:mm:ss.S").format(System
-				.currentTimeMillis());
+				.currentTimeMillis() + timeDifference);
 
 		return stringTime.substring(0, stringTime.length() - 2);
 
-		/*
-		 * return new SimpleDateFormat("H:mm:ss.S").format(System
-		 * .currentTimeMillis());
-		 */
+
 
 	}
 
 	public String getTimeAndDate() {
 		return new SimpleDateFormat("yyyy.MM.dd H:mm:ss.S").format(System
-				.currentTimeMillis());
+				.currentTimeMillis() + timeDifference);
 
 	}
 

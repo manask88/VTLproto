@@ -18,26 +18,17 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" >
 
-            <fragment
+             <fragment
                 android:id="@+id/map"
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
                 class="com.google.android.gms.maps.MapFragment" />
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal" >
+ 
 
-                <ImageView
-                    android:id="@+id/imageView"
-                    android:layout_width="200dp"
-                    android:layout_height="200dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical" >
 
                     <Button
                         android:id="@+id/trafficLight"
@@ -50,7 +41,19 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Start" />
-                </LinearLayout>
+                    
+                       <Button
+                        android:id="@+id/buttonMochV"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Start V" />
+                       
+                        <Button
+                        android:id="@+id/buttonMochH"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Start H" />
+              
             </LinearLayout>
 
             <LinearLayout
@@ -225,63 +228,7 @@
                 android:text="0" />
         </LinearLayout>
 
-        <TableLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true" >
-
-            <TableRow
-                android:id="@+id/tableRow4"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" >
-
-                <Button
-                    android:id="@+id/buttonDummy"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight=".33" />
-
-                <Button
-                    android:id="@+id/buttonUp"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight=".33"
-                    android:text="Up" />
-
-                <Button
-                    android:id="@+id/buttonDummy"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight=".33" />
-            </TableRow>
-
-            <TableRow
-                android:id="@+id/tableRow4"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" >
-
-                <Button
-                    android:id="@+id/buttonLeft"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight=".33"
-                    android:text="Left" />
-
-                <Button
-                    android:id="@+id/buttonDown"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight=".33"
-                    android:text="Down" />
-
-                <Button
-                    android:id="@+id/buttonRight"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight=".33"
-                    android:text="Right" />
-            </TableRow>
-        </TableLayout>
+      
     </RelativeLayout>
 
 </ScrollView>

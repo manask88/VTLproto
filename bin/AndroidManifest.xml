@@ -31,6 +31,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" /> 
+
     <application
         android:name="com.example.vtlproto.VTLApplication"
         android:allowBackup="true"
@@ -47,7 +48,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name="com.example.vtlproto.BeaconService" />
+        <service android:name="com.example.vtlproto.TimeSyncService" />
         <service
             android:name="com.example.vtlproto.SendUnicastAckPacketService"
             android:enabled="true" />

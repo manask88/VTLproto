@@ -83,12 +83,26 @@ public class VTLLogicService {
 							// application.trafficLightColor =
 							// VTLApplication.ORANGE;
 
-							closestCarToIntersection.setDistance(getDistance(
-									application.getCurrentPositionX(),
-									application.junctionPoint.getX(),
-									application.getCurrentPositionY(),
-									application.junctionPoint.getY()));
-
+							closestCarToIntersection
+									.setDistance(HelperFunctions.getDistance(
+											application.getCurrentPositionX(),
+											application.getCurrentPositionY(),
+											application.junctionPoint.getX(),
+											application.junctionPoint.getY()));
+							Log.i(TAG,
+									"me:"
+											+ closestCarToIntersection
+													.getDistance());
+							Log.i(TAG,
+									"my xing x:"
+											+ application.junctionPoint.getX()
+											+ "y:"
+											+ application.junctionPoint.getY());
+							Log.i(TAG,
+									"my car x:"
+											+ application.getCurrentPositionX()
+											+ "y:"
+											+ application.getCurrentPositionY());
 							closestCarToIntersection
 									.setIPAdress(application.IPAddress);
 
@@ -110,6 +124,17 @@ public class VTLLogicService {
 									application.IPAddress))
 								application.amIleader = true;
 
+							Log.i(TAG, "closest car to intersection:"
+									+ closestCarToIntersection.getIPAdress());
+
+							msg = myUpdateHandler
+									.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_VTL_LEADER);
+							Bundle bundle = new Bundle();
+							bundle.putString("closestCarToIntersection",
+									closestCarToIntersection.getIPAdress());
+							msg.setData(bundle);
+							myUpdateHandler.sendMessage(msg);
+
 							if (application.amIleader) {
 
 								Log.i(TAG,
@@ -120,10 +145,7 @@ public class VTLLogicService {
 								application.trafficLightColor = Color.RED;
 								msg = myUpdateHandler
 										.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS);
-								Bundle bundle = new Bundle();
-								bundle.putString("closestCarToIntersection",
-										closestCarToIntersection.getIPAdress());
-								msg.setData(bundle);
+
 								myUpdateHandler.sendMessage(msg);
 								VTLStatusSender(Color.RED);
 								// Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
@@ -134,17 +156,14 @@ public class VTLLogicService {
 								application.trafficLightColor = Color.GREEN;
 								msg = myUpdateHandler
 										.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS);
-								bundle = new Bundle();
-								bundle.putString("closestCarToIntersection",
-										null);
-								msg.setData(bundle);
+
 								myUpdateHandler.sendMessage(msg);
 								VTLStatusSender(Color.GREEN);
 
+								application.trafficLightColor = Color.WHITE;
 								msg = myUpdateHandler
 										.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS);
 								myUpdateHandler.sendMessage(msg);
-								application.trafficLightColor = Color.WHITE;
 								application.conflictDetected = false;
 								// Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
 
@@ -156,16 +175,23 @@ public class VTLLogicService {
 								Log.i(TAG,
 										"I am not the leader, so i am waiting for the leader");
 
-								application.trafficLightColor = VTLApplication.ORANGE;
-
-								msg = myUpdateHandler
-										.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS);
-								bundle = new Bundle();
-								msg.setData(bundle);
+								/*
+								 * application.trafficLightColor =
+								 * VTLApplication.ORANGE;
+								 * 
+								 * msg = myUpdateHandler
+								 * .obtainMessage(VTLApplication
+								 * .VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS);
+								 * bundle = new Bundle(); msg.setData(bundle);
+								 */
 
 								while (application.timeLeftForCurrentStatus > 0) {
 
+									
+									
+									
 									Thread.sleep(VTLApplication.SLEEPTIME_VTLSTATUS);
+									application.timeLeftForCurrentStatus--;
 								}
 								/*
 								 * while (!application.didIgetLeaderPacket) {
@@ -266,12 +292,23 @@ public class VTLLogicService {
 							} /* code for others ends here */
 
 						} /* conflict code ends here */
-
+						else {
+							Message msg = myUpdateHandler
+									.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_RX_CONFLICT_DETECTED);
+							myUpdateHandler.sendMessage(msg);
+							application.trafficLightColor = Color.WHITE;
+							msg = myUpdateHandler
+									.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS);
+							myUpdateHandler.sendMessage(msg);
+						}
 					} else {
 						Message msg = myUpdateHandler
 								.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_RX_CONFLICT_DETECTED);
 						myUpdateHandler.sendMessage(msg);
 						application.trafficLightColor = Color.WHITE;
+						msg = myUpdateHandler
+								.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS);
+						myUpdateHandler.sendMessage(msg);
 					}
 
 					Thread.sleep(VTLApplication.SLEEPTIME_CONFLICTDETECTION);
@@ -305,22 +342,16 @@ public class VTLLogicService {
 			// String key = entry.getKey();
 			BeaconPacket value = entry.getValue();
 
-			/*
-			 * int sqrX = (int) Math.pow( value.getX() -
-			 * application.getCurrentPositionX(), 2); int sqrY = (int) Math.pow(
-			 * value.getY() - application.getCurrentPositionY(), 2); float
-			 * result = (float) Math.sqrt(sqrX + sqrY);
-			 */
-			double result = getDistance(value.getX(), value.getY(),
-					application.getCurrentPositionX(),
+			double result = HelperFunctions.getDistance(value.getX(),
+					value.getY(), application.getCurrentPositionX(),
 					application.getCurrentPositionY());
 
 			/*
 			 * Log.i(TAG, "Car with IP " + value.getIPAdress() +
 			 * " has a distance to me of " + result);
 			 */
-
-			if (result < VTLApplication.DISTANCE_CLOSE) {
+			// TODO result < VTLApplication.DISTANCE_CLOSE
+			if (true) {
 				CloseCar closecar = new CloseCar(value);
 				closecar.setDistance(result);
 				closeCars.add(closecar);
@@ -336,25 +367,6 @@ public class VTLLogicService {
 
 	}
 
-	static float getDistance(float x1, float y1, float x2, float y2) {
-		float sqrX = (float) Math.pow(x1 - x2, 2);
-		float sqrY = (float) Math.pow(y1 - y2, 2);
-		return (float) Math.sqrt(sqrX + sqrY);
-	}
-	
-	
-	static double getDistance(double x1, double y1, double x2, double y2) {
-Location l1=new Location("loc1");
-l1.setLatitude(y1);
-l1.setLongitude(x1);
-Location l2=new Location("loc2");
-l2.setLatitude(y2);
-l2.setLongitude(x2);
-
-
-
-		return l1.distanceTo(l2);
-	}
 	void getVTLLeader(ArrayList<CloseCar> closeNeighbors) {
 
 		for (CloseCar closeCar : closeNeighbors) {
@@ -362,10 +374,16 @@ l2.setLongitude(x2);
 			double neighbordistanceFromIntersecion;
 
 			{
-				neighbordistanceFromIntersecion = getDistance(
+				neighbordistanceFromIntersecion = HelperFunctions.getDistance(
 						application.junctionPoint.getX(),
 						application.junctionPoint.getY(), closeCar.getX(),
 						closeCar.getY());
+				Log.i(TAG, "xing x:" + application.junctionPoint.getX() + "y:"
+						+ application.junctionPoint.getY());
+				Log.i(TAG,
+						"neigh car x:" + closeCar.getX() + "y:"
+								+ closeCar.getY());
+				Log.i(TAG, "neigh distance:" + neighbordistanceFromIntersecion);
 
 				msg = myUpdateHandler
 						.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_DISTANCE);
@@ -407,18 +425,18 @@ l2.setLongitude(x2);
 
 				}
 
-				Log.i(TAG, "Car with IP " + closeCar.getIPAdress()
-						+ " has a distance to his intersectionof value: "
-						+ neighbordistanceFromIntersecion);
-				Log.i(TAG,
-						"My IP "
-								+ application.IPAddress
-								+ " has a distance to my intersectionof value: "
-								+ getDistance(
-										application.getCurrentPositionX(),
-										application.getCurrentPositionY(),
-										application.junctionPoint.getX(),
-										application.junctionPoint.getY()));
+				/*
+				 * Log.i(TAG, "Car with IP " + closeCar.getIPAdress() +
+				 * " has a distance to his intersectionof value: " +
+				 * neighbordistanceFromIntersecion); Log.i(TAG, "My IP " +
+				 * application.IPAddress +
+				 * " has a distance to my intersectionof value: " +
+				 * HelperFunctions.getDistance(
+				 * application.getCurrentPositionX(),
+				 * application.getCurrentPositionY(),
+				 * application.junctionPoint.getX(),
+				 * application.junctionPoint.getY()));
+				 */
 			}
 		}
 
@@ -429,10 +447,10 @@ l2.setLongitude(x2);
 		if (application.junctionPoint != null && closeNeighbors != null
 				&& closeNeighbors.size() > 0) {
 			CloseCar clusterLeader = new CloseCar();
-			clusterLeader.setDistance(getDistance(
+			clusterLeader.setDistance(HelperFunctions.getDistance(
 					application.getCurrentPositionX(),
-					application.junctionPoint.getX(),
 					application.getCurrentPositionY(),
+					application.junctionPoint.getX(),
 					application.junctionPoint.getY()));
 
 			clusterLeader.setIPAdress(application.IPAddress);
@@ -443,10 +461,10 @@ l2.setLongitude(x2);
 					double neighbordistanceFromIntersecion;
 
 					{
-						neighbordistanceFromIntersecion = getDistance(
-								application.junctionPoint.getX(),
-								application.junctionPoint.getY(),
-								closeCar.getX(), closeCar.getY());
+						neighbordistanceFromIntersecion = HelperFunctions
+								.getDistance(application.junctionPoint.getX(),
+										application.junctionPoint.getY(),
+										closeCar.getX(), closeCar.getY());
 
 						if (neighbordistanceFromIntersecion < clusterLeader
 								.getDistance()) {
@@ -489,8 +507,9 @@ l2.setLongitude(x2);
 								"My IP "
 										+ application.IPAddress
 										+ " has a distance to my intersectionof value: "
-										+ getDistance(application
-												.getCurrentPositionX(),
+										+ HelperFunctions.getDistance(
+												application
+														.getCurrentPositionX(),
 												application
 														.getCurrentPositionY(),
 												application.junctionPoint
@@ -539,6 +558,10 @@ l2.setLongitude(x2);
 		float difference = Math.abs(angle1 - angle2);
 		if (difference == 0 || difference == 180)
 			return false;
+		
+		if (0<=difference && difference<45 || 135<  difference &&  difference<= 225 || 315<difference && difference<=360)
+			return false;
+
 
 		return true;
 
@@ -632,7 +655,7 @@ l2.setLongitude(x2);
 				// Send to multicast IP address and port
 				InetAddress address = InetAddress
 						.getByName(application.isBroadCastTX ? VTLApplication.BROADCASTADDRESS
-								: BeaconService.MULTICASTADDRESS);
+								: TimeSyncService.MULTICASTADDRESS);
 				outPacket = new DatagramPacket(outBuf, outBuf.length, address,
 						VTLApplication.PORT);
 				socket.setBroadcast(application.isBroadCastTX);
@@ -710,7 +733,7 @@ l2.setLongitude(x2);
 				// Send to multicast IP address and port
 				InetAddress address = InetAddress
 						.getByName(application.isBroadCastTX ? VTLApplication.BROADCASTADDRESS
-								: BeaconService.MULTICASTADDRESS);
+								: TimeSyncService.MULTICASTADDRESS);
 				outPacket = new DatagramPacket(outBuf, outBuf.length, address,
 						VTLApplication.PORT);
 				socket.setBroadcast(application.isBroadCastTX);
