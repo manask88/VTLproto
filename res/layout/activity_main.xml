@@ -32,7 +32,7 @@
 
                     <Button
                         android:id="@+id/trafficLight"
-                        android:layout_width="wrap_content"
+                        android:layout_width="50dp"
                         android:layout_height="wrap_content"
                         android:background="@color/orange" />
 
@@ -43,16 +43,28 @@
                         android:text="Start" />
                     
                        <Button
-                        android:id="@+id/buttonMochV"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/buttonMockLeft"
+                        android:layout_width="60dp"
                         android:layout_height="wrap_content"
-                        android:text="Start V" />
+                        android:text="Lft" />
                        
                         <Button
-                        android:id="@+id/buttonMochH"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/buttonMockRight"
+                        android:layout_width="60dp"
                         android:layout_height="wrap_content"
-                        android:text="Start H" />
+                        android:text="Rgt" />
+                        
+                          <Button
+                        android:id="@+id/buttonMockUp"
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:text="Up" />
+                       
+                        <Button
+                        android:id="@+id/buttonMockDown"
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:text="Dwn" />
               
             </LinearLayout>
 

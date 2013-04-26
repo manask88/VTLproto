@@ -59,7 +59,7 @@ public class VTLActivity extends Activity implements LocationListener {
 	public final static String TAG = VTLActivity.class.getSimpleName();
 	public final static int SQUARESIZE = 50;
 	public final static int SQUAREMARGIN = 13;
-	private Button buttonStartV, buttonStartH, buttonStart,
+	private Button buttonMockLeft,buttonMockRight,buttonMockDown, buttonMockUp, buttonStart,
 			trafficLight;
 	boolean shouldDraw = false;
 	private Context context = this;
@@ -101,7 +101,7 @@ public class VTLActivity extends Activity implements LocationListener {
 
 	
 		application.googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-				intersection, 25));
+				intersection, 20));
 		UiSettings uiSettings = application.googleMap.getUiSettings();
 		// uiSettings.setAllGesturesEnabled(false);
 		// uiSettings.setZoomControlsEnabled(false);
@@ -130,12 +130,16 @@ public class VTLActivity extends Activity implements LocationListener {
 		 
 		
 		  
-		  buttonStartV = (Button) findViewById(R.id.buttonMochV);
-			buttonStartH = (Button) findViewById(R.id.buttonMochH);
-			buttonStartH.setOnClickListener(new View.OnClickListener() {
+		    buttonMockLeft = (Button) findViewById(R.id.buttonMockLeft);
+		    buttonMockRight = (Button) findViewById(R.id.buttonMockRight);
+		    buttonMockUp = (Button) findViewById(R.id.buttonMockUp);
+
+		    buttonMockDown = (Button) findViewById(R.id.buttonMockDown);
+
+		    buttonMockLeft.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
 
-				    new MockLocationProvider(locationManager, LocationManager.GPS_PROVIDER, "horizontal.txt",context).start();
+				    new MockLocationProvider(locationManager, LocationManager.GPS_PROVIDER, "horizontal-to-left",context).start();
 
 				}
 			});
@@ -143,15 +147,29 @@ public class VTLActivity extends Activity implements LocationListener {
 			
 			
 			
-			buttonStartV.setOnClickListener(new View.OnClickListener() {
+		    buttonMockRight.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
 
-				    new MockLocationProvider(locationManager, LocationManager.GPS_PROVIDER, "vertical.txt",context).start();
+				    new MockLocationProvider(locationManager, LocationManager.GPS_PROVIDER, "horizontal-to-right",context).start();
 
 				}
 			});
 		  
-		  
+		    buttonMockUp.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+
+				    new MockLocationProvider(locationManager, LocationManager.GPS_PROVIDER, "vertical-to-up",context).start();
+
+				}
+			});
+		    
+		    buttonMockDown.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+
+				    new MockLocationProvider(locationManager, LocationManager.GPS_PROVIDER, "vertical-to-down",context).start();
+
+				}
+			});
 		  
 		  
 		  
@@ -183,7 +201,7 @@ public class VTLActivity extends Activity implements LocationListener {
 		
 		
 		
-		TimeSyncService timeSync = new TimeSyncService(context);
+		//TimeSyncService timeSync = new TimeSyncService(context);
 
 		beaconService = new BeaconService(context, beconServiceHandler);
 		VTLLogicService = new VTLLogicService(context, VTLLogicServiceHandler);
@@ -232,10 +250,10 @@ public class VTLActivity extends Activity implements LocationListener {
 		 * use to have this before implementaiton location, but that was gor
 		 * logging time
 		 */
-		// application.closeFile();
-		// beaconService.stop();
-		// VTLLogicService.stop();
-		// application.beaconServiceStatus=false;
+		 application.closeFile();
+		 beaconService.stop();
+		 VTLLogicService.stop();
+		 application.beaconServiceStatus=false;
 		/*
 		 * use to have this before implementaiton location, but that was gor
 		 * logging time
@@ -288,23 +306,26 @@ public class VTLActivity extends Activity implements LocationListener {
 
 						Log.i(TAG, "got:" + IPAddress);
 						beaconPacket
-								.setColor(VTLApplication.COLORS[numNeighbors]);
+								.setColor(numNeighbors);
 						Marker marker = application.googleMap
 								.addMarker(new MarkerOptions().position(latLng)
-										.title(beaconPacket.getIPAdress()));
+										.title(beaconPacket.getIPAdress()).icon(BitmapDescriptorFactory.fromResource(VTLApplication.CARS[numNeighbors])));
 						beaconPacket.setMarker(marker);
+						
+						
+			
 						application.hashMapNeighbors.put(IPAddress,
 								beaconPacket);
 						numNeighbors++;
 					} else {
-						
+						beaconPacket.setColor(application.hashMapNeighbors.get(IPAddress).getColor());
 
 						Marker marker = application.hashMapNeighbors.get(
 								IPAddress).getMarker();
 						marker.remove();
-						marker = application.googleMap
+						marker =application.googleMap
 								.addMarker(new MarkerOptions().position(latLng)
-										.title(beaconPacket.getIPAdress()));
+										.title(beaconPacket.getIPAdress()).icon(BitmapDescriptorFactory.fromResource(VTLApplication.CARS[beaconPacket.getColor()])));
 						beaconPacket.setMarker(marker);
 						application.hashMapNeighbors.put(IPAddress,
 								beaconPacket);
@@ -505,7 +526,7 @@ public class VTLActivity extends Activity implements LocationListener {
 			mylocation.remove();
 
 		mylocation = application.googleMap.addMarker(new MarkerOptions()
-				.position(newLoc).title("MyLoc"));
+				.position(newLoc).title("MyLoc").icon(BitmapDescriptorFactory.fromResource(R.drawable.car_icon_black)));
 
 		
 

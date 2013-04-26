@@ -144,12 +144,20 @@ containing a value of this type.
         public static final int activity_vertical_margin=0x7f070001;
     }
     public static final class drawable {
-        public static final int ic_launcher=0x7f020000;
+        public static final int car=0x7f020000;
+        public static final int car_icon_black=0x7f020001;
+        public static final int car_icon_blue=0x7f020002;
+        public static final int car_icon_green=0x7f020003;
+        public static final int car_icon_red=0x7f020004;
+        public static final int car_icon_yellow=0x7f020005;
+        public static final int ic_launcher=0x7f020006;
     }
     public static final class id {
-        public static final int action_settings=0x7f040017;
-        public static final int buttonMochH=0x7f040009;
-        public static final int buttonMochV=0x7f040008;
+        public static final int action_settings=0x7f040019;
+        public static final int buttonMockDown=0x7f04000b;
+        public static final int buttonMockLeft=0x7f040008;
+        public static final int buttonMockRight=0x7f040009;
+        public static final int buttonMockUp=0x7f04000a;
         public static final int buttonStart=0x7f040007;
         public static final int hybrid=0x7f040004;
         public static final int map=0x7f040005;
@@ -158,19 +166,19 @@ containing a value of this type.
         public static final int satellite=0x7f040002;
         public static final int terrain=0x7f040003;
         public static final int trafficLight=0x7f040006;
-        public static final int tvAngle=0x7f04000e;
-        public static final int tvClosestCarToIntersection=0x7f04000c;
-        public static final int tvClusterLeaader=0x7f04000d;
-        public static final int tvIPAddress=0x7f040012;
-        public static final int tvIntersection=0x7f04000b;
-        public static final int tvLat=0x7f040015;
-        public static final int tvLong=0x7f040016;
-        public static final int tvMyDistanceToIntersection=0x7f04000f;
-        public static final int tvOtherDistanceToIntersection=0x7f040010;
-        public static final int tvPositionX=0x7f040013;
-        public static final int tvPositionY=0x7f040014;
-        public static final int tvReceived=0x7f04000a;
-        public static final int tvTime=0x7f040011;
+        public static final int tvAngle=0x7f040010;
+        public static final int tvClosestCarToIntersection=0x7f04000e;
+        public static final int tvClusterLeaader=0x7f04000f;
+        public static final int tvIPAddress=0x7f040014;
+        public static final int tvIntersection=0x7f04000d;
+        public static final int tvLat=0x7f040017;
+        public static final int tvLong=0x7f040018;
+        public static final int tvMyDistanceToIntersection=0x7f040011;
+        public static final int tvOtherDistanceToIntersection=0x7f040012;
+        public static final int tvPositionX=0x7f040015;
+        public static final int tvPositionY=0x7f040016;
+        public static final int tvReceived=0x7f04000c;
+        public static final int tvTime=0x7f040013;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;

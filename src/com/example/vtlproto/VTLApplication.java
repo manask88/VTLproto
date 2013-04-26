@@ -74,7 +74,7 @@ public class VTLApplication extends Application {
 	public final static  int SLEEPTIME_CONFLICTDETECTION = 500;
 	public final static int SLEEPTIME_TIME = 100;
 	public final static int SLEEPTIME_MOCKLOCATION = 1000;
-	public final static  int SLEEPTIME_TIMESYNC = 1000 * 60 * 5;
+	public final static  int SLEEPTIME_TIMESYNC = 1000 * 60 * 1;
 	public final static  int NTP_TIME_OUT = 1000 * 10;
 	public final static String NTP_SERVER="time.windows.com";
 	public final static  String MULTICASTADDRESS = "224.2.2.3";
@@ -91,7 +91,8 @@ public class VTLApplication extends Application {
 	public final static int ORANGE = Color.rgb(0xff, 0xa5, 0);
 	public final static int[] COLORS = { Color.BLACK, Color.RED, Color.WHITE,
 			Color.YELLOW };
-
+	public final static int[] CARS = { R.drawable.car_icon_blue, R.drawable.car_icon_green, R.drawable.car_icon_red,
+		R.drawable.car_icon_yellow};
 	public final static int BEACONSERVICE_HANDLER_RX_TEXT = 1;
 	public final static int VTLLOGICSERVICE_HANDLER_RX_CONFLICT_DETECTED = 2;
 	public final static int VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS = 3;
@@ -225,7 +226,11 @@ public class VTLApplication extends Application {
 			// BROADCASTADDRESS = "192.168.49.255";
 
 		}
-
+	/*	else
+		{
+			BROADCASTADDRESS = "255.255.255.255";
+			
+		}*/
 	}
 
 
@@ -340,7 +345,7 @@ public class VTLApplication extends Application {
 	}
 
 	public long getTimeAndDateInLong() {
-		return System.currentTimeMillis();
+		return System.currentTimeMillis()+ timeDifference;
 
 	}
 
