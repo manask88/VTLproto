@@ -171,7 +171,7 @@ public class VTLApplication extends Application {
 		String s = readTextFile(inputStream);
 		map = new Map(s);
 		// setBooleanMap(map);
-		isBroadCastTX = true;
+		isBroadCastTX = false;
 		currentPositionX = 0;
 		currentPositionY = 0;
 		trafficLightColor = Color.WHITE;
@@ -352,7 +352,7 @@ public class VTLApplication extends Application {
 	/*this is used to write logs */
 	void createAndOpenFile() {
 		try {
-			File logFile = new File("/sdcard/logVTL.txt");
+			File logFile = new File("/sdcard/logVTL_"+getTimeAndDate()+".txt");
 
 			logFile.createNewFile();
 
