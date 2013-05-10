@@ -68,29 +68,24 @@ public class VTLApplication extends Application {
 	private double currentPositionX, currentPositionY;
 	public final static int PORT = 8888;
 	
-	public final static  int SLEEPTIME_SEND = 100;
-	public final static  int SLEEPTIME_RECEIVE = 25;
-	public final static int SLEEPTIME_VTLSTATUS = 1000;
-	public final static  int SLEEPTIME_CONFLICTDETECTION = 500;
-	public final static int SLEEPTIME_TIME = 100;
-	public final static int SLEEPTIME_MOCKLOCATION = 1000;
-	public final static  int SLEEPTIME_TIMESYNC = 1000 * 60 * 1;
-	public final static  int NTP_TIME_OUT = 1000 * 10;
-	public final static String NTP_SERVER="time.windows.com";
-	public final static  String MULTICASTADDRESS = "224.2.2.3";
+	public final static  int SLEEPTIME_SEND = 100; /*sleeptime of beacon sender thread*/
+	public final static  int SLEEPTIME_RECEIVE = 25; /*sleeptime receiver thread*/
+	public final static int SLEEPTIME_VTLSTATUS = 1000; /*sleeptime of traffic light status (tis not a thread)*/
+	public final static  int SLEEPTIME_CONFLICTDETECTION = 500; /*sleeptime of conflict detection thread*/
+	public final static int SLEEPTIME_TIME = 100; /*sleeptime to refresh clock on UI*/
+	public final static int SLEEPTIME_MOCKLOCATION = 1000; /*sleeptime thread that probides oc locations*/
+	public final static  int SLEEPTIME_TIMESYNC = 1000 * 60 * 1;  /*sleeptime of thread that gets time forom ntp clock*/
+	public final static  int NTP_TIME_OUT = 1000 * 10;  /*time out of an ntp request*/
+	public final static String NTP_SERVER="time.windows.com";  /*address of ntp server*/
+	public final static  String MULTICASTADDRESS = "224.2.2.3"; /*multicast address*/
 	public static String BROADCASTADDRESS;
 	
 	
 	
 	
-	public final static  int DISTANCE_CLOSEX = 10;
-	public final static  int DISTANCE_SAME_INTERSECTION = 2;
 	public final static int MAX_NEIGHBORS = 4;
-	public final static int OFFSETY = 0;
 	
-	public final static int ORANGE = Color.rgb(0xff, 0xa5, 0);
-	public final static int[] COLORS = { Color.BLACK, Color.RED, Color.WHITE,
-			Color.YELLOW };
+
 	public final static int[] CARS = { R.drawable.car_icon_blue, R.drawable.car_icon_green, R.drawable.car_icon_red,
 		R.drawable.car_icon_yellow};
 	public final static int BEACONSERVICE_HANDLER_RX_TEXT = 1;
@@ -108,7 +103,7 @@ public class VTLApplication extends Application {
 	public final static char MSG_LIGHT_STATUS_GREEN = 'G';
 	public final static char MSG_LIGHT_STATUS_RED = 'R';
 
-	public boolean isBroadCastTX;
+	public boolean isBroadCastTX,isLog;
 	public long timeDifference;
 	public String IPAddress;
 	public int trafficLightColor;
@@ -117,11 +112,11 @@ public class VTLApplication extends Application {
 	public TimeSyncService beaconService;
 	public CloseCar clusterLeader = null;
 	public boolean beaconServiceStatus = false;
-	public boolean conflictDetected = false;
+	//public boolean conflictDetected = false;
 	public boolean amIleader = false;
-	public boolean didIgetLeaderPacket = false;
+	//public boolean didIgetLeaderPacket = false;
 	public int timeLeftForCurrentStatus = 0;
-	public boolean waitingForLeaderMessage = false;
+	//public boolean waitingForLeaderMessage = false;
 	public String junctionId, laneId;
 	public float directionAngle;
 	public Map map;
@@ -131,7 +126,7 @@ public class VTLApplication extends Application {
 	public Marker mylocation, marker1, marker2, marker3, marker4, marker5,
 			marker6;
 
-	GroundOverlay groundOverlay;
+	//GroundOverlay groundOverlay;
 
 	public double getCurrentPositionX() {
 		return currentPositionX;
@@ -171,7 +166,8 @@ public class VTLApplication extends Application {
 		String s = readTextFile(inputStream);
 		map = new Map(s);
 		// setBooleanMap(map);
-		isBroadCastTX = false;
+		isBroadCastTX = true;
+		isLog= false;
 		currentPositionX = 0;
 		currentPositionY = 0;
 		trafficLightColor = Color.WHITE;

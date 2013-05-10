@@ -123,6 +123,8 @@ public class BeaconService {
 		}
 
 		long difference = application.getTimeAndDateInLong() - packetDate.getTime();
+		
+		if (application.isLog)
 		application.writeToFile(stringMsg + " received at " + application.getTimeAndDate() + ", difference(ms):," + difference + "\n");
 		// Log.i(TAG, "Listener Thread got:  "+ stringMsg);
 		Message msg = myUpdateHandler

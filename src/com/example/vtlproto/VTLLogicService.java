@@ -72,7 +72,7 @@ public class VTLLogicService {
 								&& isConflictingIntersection(closeCars)) {
 
 							/* conflict code begins here */
-							application.conflictDetected = true;
+							//application.conflictDetected = true;
 							// application.trafficLightColor =
 							// VTLApplication.ORANGE;
 
@@ -99,6 +99,7 @@ public class VTLLogicService {
 							closestCarToIntersection
 									.setIPAdress(application.IPAddress);
 
+							/*sets closestCarToIntersection*/
 							getVTLLeader(closeCars);
 
 							Message msg = myUpdateHandler
@@ -111,7 +112,7 @@ public class VTLLogicService {
 							 * + furthestCarFromIntersection.getIPAdress());
 							 */
 
-							/* code for the leader */
+							
 
 							if (closestCarToIntersection.getIPAdress().equals(
 									application.IPAddress))
@@ -127,7 +128,8 @@ public class VTLLogicService {
 									closestCarToIntersection.getIPAdress());
 							msg.setData(bundle);
 							myUpdateHandler.sendMessage(msg);
-
+							
+							/* code for the leader */
 							if (application.amIleader) {
 
 								Log.i(TAG,
@@ -157,7 +159,7 @@ public class VTLLogicService {
 								msg = myUpdateHandler
 										.obtainMessage(VTLApplication.VTLLOGICSERVICE_HANDLER_NEW_LIGHT_STATUS);
 								myUpdateHandler.sendMessage(msg);
-								application.conflictDetected = false;
+								//application.conflictDetected = false;
 								// Thread.sleep(VTLApplication.SLEEPTIME_TRAFFIC_LIGHT);
 
 								/* code for leader ends here */

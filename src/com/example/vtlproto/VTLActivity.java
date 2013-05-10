@@ -103,8 +103,8 @@ public class VTLActivity extends Activity implements LocationListener {
 		application.googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
 				intersection, 20));
 		UiSettings uiSettings = application.googleMap.getUiSettings();
-		// uiSettings.setAllGesturesEnabled(false);
-		// uiSettings.setZoomControlsEnabled(false);
+		uiSettings.setAllGesturesEnabled(false);
+		uiSettings.setZoomControlsEnabled(false);
 
 		// Zoom in, animating the camera.
 		// map.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
@@ -235,7 +235,9 @@ public class VTLActivity extends Activity implements LocationListener {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		
 		Log.i(TAG, "onResume");
+		if (application.isLog)
 		application.createAndOpenFile();
 
 	}
@@ -250,7 +252,8 @@ public class VTLActivity extends Activity implements LocationListener {
 		 * use to have this before implementaiton location, but that was gor
 		 * logging time
 		 */
-		 application.closeFile();
+		if (application.isLog) 
+		application.closeFile();
 		 beaconService.stop();
 		 VTLLogicService.stop();
 		 application.beaconServiceStatus=false;

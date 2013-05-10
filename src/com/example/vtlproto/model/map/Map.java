@@ -7,6 +7,7 @@ import org.w3c.dom.NodeList;
 
 import org.w3c.dom.Element;
 
+import com.example.vtlproto.XMLfunctions;
 import com.example.vtlproto.model.Point;
 
 import android.util.Log;

@@ -1,4 +1,4 @@
-package com.example.vtlproto.model.map;
+package com.example.vtlproto;
 
 import java.io.IOException;
 import java.io.StringReader;
